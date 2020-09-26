@@ -18,9 +18,9 @@ public class EpicDaoImpl implements EpicDao {
     private DataHelper dataHelper;
 
     private static final String SQL_CREATE =
-            "INSERT INTO epic(id, product_id, name, state, release_id, assign_to, initiative_id, goals, " +
+            "INSERT INTO epic(id, product_id, name, state, release_id, " +
                     "description, files, created_at, created_by) " +
-                    "values(%d, %d, '%s', %d, %d, %d, %d, '%s', '%s', '%s', %d, %d)";
+                    "values(%d, %d, '%s', %d, %d, '%s', '%s', %d, %d)";
     private static final String SQL_SELECT_BY_ID =
             "SELECT * FROM epic WHERE id = %d";
     private static final String SQL_SELECT_BY_PRODUCT_ID =
@@ -37,9 +37,8 @@ public class EpicDaoImpl implements EpicDao {
     @Override
     public void create(EpicEntity entity) throws IOException, DBServiceException {
         String query = String.format(SQL_CREATE, entity.getId(), entity.getProductId(), entity.getName(),
-                entity.getState(), entity.getReleaseId(), entity.getAssignTo(),entity.getInitiativeId(),
-                entity.getGoals(), entity.getDescription(), entity.getFiles(), entity.getCreatedAt(),
-                entity.getCreatedBy());
+                entity.getState(), entity.getReleaseId(), entity.getDescription(),
+                entity.getFiles(), entity.getCreatedAt(), entity.getCreatedBy());
         dataHelper.executeSQL(query);
     }
 

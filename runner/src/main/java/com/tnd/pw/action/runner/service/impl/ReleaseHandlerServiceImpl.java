@@ -44,19 +44,21 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
         ReleaseEntity release = releaseService.createRelease(
                 ReleaseEntity.builder()
                         .name(request.getName())
-                        .productId(request.getProductId())
+                        .productId(request.getId())
                         .owner(request.getOwner())
                         .theme(request.getTheme())
                         .createdBy(request.getPayload().getUserId())
                         .build()
         );
-        createDefaultPhases(release);
+        if(request.isGeneratePhases()) {
+            createDefaultPhases(release);
+        }
 
         List<ReleaseEntity> releaseEntities = null;
         try {
             releaseEntities = releaseService.getRelease(
                     ReleaseEntity.builder()
-                            .productId(request.getProductId())
+                            .productId(release.getProductId())
                             .build()
             );
         } catch (ReleaseNotFoundException e) {}
@@ -65,11 +67,15 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
 
     @Override
     public CsDevRepresentation getRelease(DevRequest request) throws IOException, DBServiceException {
+        return getRelease(request.getId());
+    }
+
+    private CsDevRepresentation getRelease(Long productId) throws IOException, DBServiceException {
         List<ReleaseEntity> releaseEntities = null;
         try {
             releaseEntities = releaseService.getRelease(
                     ReleaseEntity.builder()
-                            .productId(request.getProductId())
+                            .productId(productId)
                             .build()
             );
         } catch (ReleaseNotFoundException e) {}
@@ -85,7 +91,11 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
         ).get(0);
         List<ReleasePhaseEntity> releasePhase = null;
         try {
-            releasePhase = releaseService.getReleasePhase(ReleasePhaseEntity.builder().releaseId(releaseEntity.getId()).build());
+            releasePhase = releaseService.getReleasePhase(
+                    ReleasePhaseEntity.builder()
+                            .releaseId(releaseEntity.getId())
+                            .build()
+            );
         } catch (ReleasePhaseNotFoundException e) {
         }
         CsActionRepresentation actionRep = callActionApi.call(releaseEntity.getId(), request);
@@ -115,9 +125,6 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
             long duration = TimeUnit.DAYS.convert(request.getReleaseDate() - releaseEntity.getCreatedAt(), TimeUnit.MILLISECONDS);
             releaseEntity.setDaysToRelease((int)duration);
         }
-        if(request.getReleaseDate() != null) {
-            releaseEntity.setReleaseDate(request.getReleaseDate());
-        }
         if(request.getStartOn() != null) {
             releaseEntity.setStartOn(request.getStartOn());
         }
@@ -144,9 +151,14 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
     }
 
     @Override
-    public CsDevRepresentation removeRelease(DevRequest request) throws IOException, DBServiceException {
-        releaseService.removeRelease(ReleaseEntity.builder().id(request.getId()).build());
-        return getRelease(request);
+    public CsDevRepresentation removeRelease(DevRequest request) throws IOException, DBServiceException, ReleaseNotFoundException {
+        ReleaseEntity releaseEntity = releaseService.getRelease(
+                ReleaseEntity.builder()
+                        .id(request.getId())
+                        .build()
+        ).get(0);
+        releaseService.removeRelease(releaseEntity);
+        return getRelease(releaseEntity.getProductId());
     }
 
     @Override
@@ -213,9 +225,27 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
     }
 
     @Override
-    public ReleasePhaseRep removeReleasePhase(DevRequest request) throws DBServiceException, IOException {
+    public CsDevRepresentation removeReleasePhase(DevRequest request) throws DBServiceException, IOException, ReleasePhaseNotFoundException {
+        ReleasePhaseEntity releasePhaseEntity = releaseService.getReleasePhase(
+                ReleasePhaseEntity.builder()
+                        .id(request.getId()).build()
+        ).get(0);
+
         releaseService.removeReleasePhase(ReleasePhaseEntity.builder().id(request.getId()).build());
-        return null;
+        return getReleasePhase(releasePhaseEntity.getReleaseId());
+    }
+
+    private CsDevRepresentation getReleasePhase(Long releaseId) throws IOException, DBServiceException {
+        List<ReleasePhaseEntity> releasePhases = null;
+        try {
+            releasePhases = releaseService.getReleasePhase(
+                    ReleasePhaseEntity.builder()
+                            .releaseId(releaseId)
+                            .build()
+            );
+        } catch (ReleasePhaseNotFoundException e) {
+        }
+        return RepresentationBuilder.buildListReleasePhaseRep(releasePhases);
     }
 
     @Override
@@ -228,6 +258,7 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
                         .name(request.getName())
                         .description(request.getDescription())
                         .files(request.getFiles())
+                        .createdBy(request.getPayload().getUserId())
                         .build()
         );
         List<EpicEntity> epicEntities = releaseService.getEpic(
@@ -278,6 +309,9 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
         if(request.getFiles() != null) {
             epicEntity.setFiles(request.getFiles());
         }
+        if(request.getReleaseId() != null) {
+            epicEntity.setReleaseId(request.getReleaseId());
+        }
 
         releaseService.updateEpic(epicEntity);
         CsActionRepresentation actionRep = callActionApi.call(epicEntity.getId(), request);
@@ -285,24 +319,37 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
     }
 
     @Override
-    public CsDevRepresentation removeEpic(DevRequest request) throws IOException, DBServiceException {
-        releaseService.removeEpic(EpicEntity.builder().id(request.getId()).build());
-        return getEpic(request);
+    public CsDevRepresentation removeEpic(DevRequest request) throws IOException, DBServiceException, EpicNotFoundException {
+        EpicEntity epicEntity = releaseService.getEpic(
+                EpicEntity.builder()
+                        .id(request.getId())
+                        .build()
+        ).get(0);
+        releaseService.removeEpic(epicEntity);
+        return getEpic(epicEntity.getProductId());
     }
 
-    @Override
-    public CsDevRepresentation getEpic(DevRequest request) throws IOException, DBServiceException {
+    private CsDevRepresentation getEpic(Long productId) throws IOException, DBServiceException {
         List<EpicEntity> epicEntities = null;
         try {
             epicEntities = releaseService.getEpic(
                     EpicEntity.builder()
-                            .productId(request.getProductId())
+                            .productId(productId)
                             .build()
             );
         } catch (EpicNotFoundException e) {
-            e.printStackTrace();
         }
         return RepresentationBuilder.buildListEpicRep(epicEntities);
+    }
+
+    @Override
+    public CsDevRepresentation getEpic(DevRequest request) throws IOException, DBServiceException {
+        return getEpic(request.getId());
+    }
+
+    @Override
+    public CsDevRepresentation getReleasePhase(DevRequest request) throws DBServiceException, IOException {
+        return getReleasePhase(request.getId());
     }
 
 
@@ -316,8 +363,6 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
                         .type(PhaseType.PHASE.ordinal())
                         .color("#A5A5A5")
                         .date(String.format("%d-%d", calendar.getTimeInMillis(), calendar.getTimeInMillis()))
-                        .description("")
-                        .files("")
                         .build()
         );
         calendar.add(Calendar.DATE, 1);
@@ -328,8 +373,6 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
                         .type(PhaseType.PHASE.ordinal())
                         .color("#E1CC8A")
                         .date(String.format("%d-%d", calendar.getTimeInMillis(), calendar.getTimeInMillis()))
-                        .description("")
-                        .files("")
                         .build()
         );
         calendar.add(Calendar.DATE, 1);
@@ -340,8 +383,6 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
                         .type(PhaseType.PHASE.ordinal())
                         .color("#9AC7D8")
                         .date(String.format("%d-%d", calendar.getTimeInMillis(), calendar.getTimeInMillis()))
-                        .description("")
-                        .files("")
                         .build()
         );
         calendar.add(Calendar.DATE, 1);
@@ -352,8 +393,6 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
                         .type(PhaseType.PHASE.ordinal())
                         .color("#92CD53")
                         .date(String.format("%d-%d", calendar.getTimeInMillis(), calendar.getTimeInMillis()))
-                        .description("")
-                        .files("")
                         .build()
         );
         calendar.add(Calendar.DATE, 1);
@@ -364,8 +403,6 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
                         .type(PhaseType.MILESTONE.ordinal())
                         .color("#FAB35E")
                         .date(String.format("%d", calendar.getTimeInMillis()))
-                        .description("")
-                        .files("")
                         .build()
         );
         calendar.add(Calendar.DATE, 1);
@@ -376,8 +413,6 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
                         .type(PhaseType.PHASE.ordinal())
                         .color("#EA8282")
                         .date(String.format("%d-%d", calendar.getTimeInMillis(), calendar.getTimeInMillis()))
-                        .description("")
-                        .files("")
                         .build()
         );
         calendar.add(Calendar.DATE, 1);
@@ -388,8 +423,6 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
                         .type(PhaseType.PHASE.ordinal())
                         .color("#94819E")
                         .date(String.format("%d-%d", calendar.getTimeInMillis(), calendar.getTimeInMillis()))
-                        .description("")
-                        .files("")
                         .build()
         );
         calendar.add(Calendar.DATE, 1);
@@ -400,8 +433,6 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
                         .type(PhaseType.PHASE.ordinal())
                         .color("#94819E")
                         .date(String.format("%d", calendar.getTimeInMillis()))
-                        .description("")
-                        .files("")
                         .build()
         );
     }

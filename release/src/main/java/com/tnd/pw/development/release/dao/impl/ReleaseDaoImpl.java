@@ -16,10 +16,8 @@ public class ReleaseDaoImpl implements ReleaseDao {
     private DataHelper dataHelper;
 
     private static final String SQL_CREATE =
-            "INSERT INTO release(id, product_id, name, state, owner, initiative_id, goals, " +
-                    "days_to_release, release_day, start_on, end_on, develop_start_on, " +
-                    "theme, files, created_at, created_by) " +
-                    "values(%d, %d, '%s', %d, %d, %d, %d, %d, %d, %d, %d, %d, '%s', '%s', %d, %d)";
+            "INSERT INTO release(id, product_id, name, state, owner, theme, created_at, created_by) " +
+                    "values(%d, %d, '%s', %d, %d, '%s', %d, %d)";
     private static final String SQL_SELECT_BY_ID =
             "SELECT * FROM release WHERE id = %d";
     private static final String SQL_SELECT_BY_PRODUCT_ID =
@@ -28,7 +26,7 @@ public class ReleaseDaoImpl implements ReleaseDao {
             "SELECT * FROM release WHERE ( %d BETWEEN start_on AND end_on ) AND ( %d BETWEEN start_on AND end_on )";
     private static final String SQL_UPDATE =
             "UPDATE release SET name = '%s', state = %d, owner = %d, initiative_id = %d, goals = '%s', " +
-                    "start_on = %d, end_on = %d, days_to_release = %d, release_day = %d, develop_start_on = %d, " +
+                    "start_on = %d, end_on = %d, days_to_release = %d, release_date = %d, develop_start_on = %d, " +
                     "theme = '%s', files = '%s' " +
                     "WHERE id = %d";
     private static final String SQL_DELETE =
@@ -38,9 +36,8 @@ public class ReleaseDaoImpl implements ReleaseDao {
     @Override
     public void create(ReleaseEntity entity) throws IOException, DBServiceException {
         String query = String.format(SQL_CREATE, entity.getId(), entity.getProductId(), entity.getName(),
-                entity.getState(), entity.getOwner(), entity.getInitiativeId(),entity.getGoals(),
-                entity.getDaysToRelease(), entity.getReleaseDate(), entity.getStartOn(), entity.getEndOn(),
-                entity.getDevelopStartOn(), entity.getTheme(), entity.getFiles(), entity.getCreatedAt(), entity.getCreatedBy());
+                entity.getState(), entity.getOwner(), entity.getTheme(),
+                entity.getCreatedAt(), entity.getCreatedBy());
         dataHelper.executeSQL(query);
     }
 
@@ -68,6 +65,7 @@ public class ReleaseDaoImpl implements ReleaseDao {
         String query = String.format(SQL_UPDATE, entity.getName(), entity.getState(),entity.getOwner(),
                 entity.getInitiativeId(),entity.getGoals(), entity.getStartOn(), entity.getEndOn(),
                 entity.getDaysToRelease(), entity.getReleaseDate(), entity.getDevelopStartOn(),
+                entity.getTheme(), entity.getFiles(),
                 entity.getId());
         dataHelper.executeSQL(query);
     }

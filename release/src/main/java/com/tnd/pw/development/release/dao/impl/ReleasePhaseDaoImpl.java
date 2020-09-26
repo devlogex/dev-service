@@ -19,8 +19,8 @@ public class ReleasePhaseDaoImpl implements ReleasePhaseDao {
     private DataHelper dataHelper;
 
     private static final String SQL_CREATE =
-            "INSERT INTO release_phase(id, release_id, name, type, color, date, description, files) " +
-                    "values(%d, %d, '%s', %d, '%s', '%s', '%s', '%s')";
+            "INSERT INTO release_phase(id, release_id, name, type, color, date) " +
+                    "values(%d, %d, '%s', %d, '%s', '%s')";
     private static final String SQL_SELECT_BY_ID =
             "SELECT * FROM release_phase WHERE id = %d";
     private static final String SQL_SELECT_BY_RELEASE_ID =
@@ -36,7 +36,7 @@ public class ReleasePhaseDaoImpl implements ReleasePhaseDao {
     @Override
     public void create(ReleasePhaseEntity entity) throws IOException, DBServiceException {
         String query = String.format(SQL_CREATE, entity.getId(), entity.getReleaseId(), entity.getName(),
-                entity.getType(), entity.getColor(), entity.getDate(),entity.getDescription(), entity.getFiles());
+                entity.getType(), entity.getColor(), entity.getDate());
         dataHelper.executeSQL(query);
     }
 
@@ -47,7 +47,7 @@ public class ReleasePhaseDaoImpl implements ReleasePhaseDao {
             query = String.format(SQL_SELECT_BY_ID, entity.getId());
         }
         else if(entity.getReleaseId()!= null) {
-            query = String.format(SQL_DELETE_BY_RELEASE_ID, entity.getReleaseId());
+            query = String.format(SQL_SELECT_BY_RELEASE_ID, entity.getReleaseId());
         }
         List<ReleasePhaseEntity> entities = dataHelper.querySQL(query, ReleasePhaseEntity.class);
         if(CollectionUtils.isEmpty(entities)) {

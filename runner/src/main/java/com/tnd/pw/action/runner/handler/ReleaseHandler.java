@@ -62,7 +62,7 @@ public class ReleaseHandler implements BaseHandler {
     }
 
     @HandlerService(path = "/development/release/remove", protocol = "POST")
-    public BaseResponse<CsDevRepresentation> removeRelease(DevRequest request) throws IOException, DBServiceException {
+    public BaseResponse<CsDevRepresentation> removeRelease(DevRequest request) throws IOException, DBServiceException, ReleaseNotFoundException {
         LOGGER.info("[ReleaseHandler] removeRelease() - request: {}", GsonUtils.convertToString(request));
         CsDevRepresentation response = releaseHandlerService.removeRelease(request);
         LOGGER.info("[ReleaseHandler] removeRelease() - response: {}", GsonUtils.convertToString(response));
@@ -85,6 +85,14 @@ public class ReleaseHandler implements BaseHandler {
         return new BaseResponse<>(response);
     }
 
+    @HandlerService(path = "/development/release/phase", protocol = "GET")
+    public BaseResponse<CsDevRepresentation> getReleasePhase(DevRequest request) throws DBServiceException, IOException, ReleasePhaseNotFoundException, CallApiFailException {
+        LOGGER.info("[ReleaseHandler] getReleasePhase() - request: {}", GsonUtils.convertToString(request));
+        CsDevRepresentation response = releaseHandlerService.getReleasePhase(request);
+        LOGGER.info("[ReleaseHandler] getReleasePhase() - response: {}", GsonUtils.convertToString(response));
+        return new BaseResponse<>(response);
+    }
+
     @HandlerService(path = "/development/release/phase/update", protocol = "POST")
     public BaseResponse<ReleasePhaseRep> updateReleasePhase(DevRequest request) throws DBServiceException, IOException, ReleasePhaseNotFoundException, CallApiFailException {
         LOGGER.info("[ReleaseHandler] updateReleasePhase() - request: {}", GsonUtils.convertToString(request));
@@ -94,9 +102,9 @@ public class ReleaseHandler implements BaseHandler {
     }
 
     @HandlerService(path = "/development/release/phase/remove", protocol = "POST")
-    public BaseResponse<ReleasePhaseRep> removeReleasePhase(DevRequest request) throws DBServiceException, IOException {
+    public BaseResponse<CsDevRepresentation> removeReleasePhase(DevRequest request) throws DBServiceException, IOException, ReleasePhaseNotFoundException {
         LOGGER.info("[ReleaseHandler] removeReleasePhase() - request: {}", GsonUtils.convertToString(request));
-        ReleasePhaseRep response = releaseHandlerService.removeReleasePhase(request);
+        CsDevRepresentation response = releaseHandlerService.removeReleasePhase(request);
         LOGGER.info("[ReleaseHandler] removeReleasePhase() - response: {}", GsonUtils.convertToString(response));
         return new BaseResponse<>(response);
     }
@@ -134,7 +142,7 @@ public class ReleaseHandler implements BaseHandler {
     }
 
     @HandlerService(path = "/development/release/epic/remove", protocol = "POST")
-    public BaseResponse<CsDevRepresentation> removeEpic(DevRequest request) throws DBServiceException, IOException {
+    public BaseResponse<CsDevRepresentation> removeEpic(DevRequest request) throws DBServiceException, IOException, EpicNotFoundException {
         LOGGER.info("[ReleaseHandler] removeEpic() - request: {}", GsonUtils.convertToString(request));
         CsDevRepresentation response = releaseHandlerService.removeEpic(request);
         LOGGER.info("[ReleaseHandler] removeEpic() - response: {}", GsonUtils.convertToString(response));

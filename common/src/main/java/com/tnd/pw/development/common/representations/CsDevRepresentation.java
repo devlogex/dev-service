@@ -24,4 +24,10 @@ public class CsDevRepresentation implements Serializable {
 
     @SerializedName("list_feature")
     private HashMap<String, List<FeatureRep>> featureReps;
+
+    @SerializedName("feature")
+    private FeatureRep featureRep;
+
+    @SerializedName("list_requirement")
+    private List<RequirementRep> requirementReps;
 }

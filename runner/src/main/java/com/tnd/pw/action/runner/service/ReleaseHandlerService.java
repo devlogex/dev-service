@@ -18,7 +18,7 @@ public interface ReleaseHandlerService {
     CsDevRepresentation getRelease(DevRequest request) throws IOException, DBServiceException;
     ReleaseRep getReleaseInfo(DevRequest request) throws DBServiceException, ReleaseNotFoundException, IOException, CallApiFailException;
     ReleaseRep updateRelease(DevRequest request) throws DBServiceException, ReleaseNotFoundException, IOException, CallApiFailException;
-    CsDevRepresentation removeRelease(DevRequest request) throws IOException, DBServiceException;
+    CsDevRepresentation removeRelease(DevRequest request) throws IOException, DBServiceException, ReleaseNotFoundException;
 
     CsDevRepresentation addReleasePhase(DevRequest request) throws IOException, DBServiceException, ReleasePhaseNotFoundException;
 
@@ -26,7 +26,7 @@ public interface ReleaseHandlerService {
 
     ReleasePhaseRep updateReleasePhase(DevRequest request) throws DBServiceException, IOException, ReleasePhaseNotFoundException, CallApiFailException;
 
-    ReleasePhaseRep removeReleasePhase(DevRequest request) throws DBServiceException, IOException;
+    CsDevRepresentation removeReleasePhase(DevRequest request) throws DBServiceException, IOException, ReleasePhaseNotFoundException;
 
     CsDevRepresentation addEpic(DevRequest request) throws IOException, DBServiceException, EpicNotFoundException;
 
@@ -34,7 +34,9 @@ public interface ReleaseHandlerService {
 
     EpicRep updateEpic(DevRequest request) throws DBServiceException, EpicNotFoundException, IOException, CallApiFailException;
 
-    CsDevRepresentation removeEpic(DevRequest request) throws IOException, DBServiceException;
+    CsDevRepresentation removeEpic(DevRequest request) throws IOException, DBServiceException, EpicNotFoundException;
 
     CsDevRepresentation getEpic(DevRequest request) throws IOException, DBServiceException;
+
+    CsDevRepresentation getReleasePhase(DevRequest request) throws DBServiceException, IOException, ReleasePhaseNotFoundException;
 }

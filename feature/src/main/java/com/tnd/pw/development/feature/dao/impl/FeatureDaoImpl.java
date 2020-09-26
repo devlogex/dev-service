@@ -16,9 +16,9 @@ public class FeatureDaoImpl implements FeatureDao {
     private DataHelper dataHelper;
 
     private static final String SQL_CREATE =
-            "INSERT INTO feature(id, product_id, name, state, release_id, assign_to, initiative_id, goals, " +
-                    "epic_id, requirements, description, files, created_at, created_by) " +
-                    "values(%d, %d, '%s', %d, %d, %d, %d, '%s', %d, '%s', '%s', '%s', %d, %d)";
+            "INSERT INTO feature(id, product_id, name, type, state, release_id, " +
+                    "description, files, created_at, created_by) " +
+                    "values(%d, %d, '%s',  %d, %d, %d, '%s', '%s', %d, %d)";
     private static final String SQL_SELECT_BY_ID =
             "SELECT * FROM feature WHERE id = %d";
     private static final String SQL_SELECT_BY_PRODUCT_ID =
@@ -35,8 +35,7 @@ public class FeatureDaoImpl implements FeatureDao {
     @Override
     public void create(FeatureEntity entity) throws IOException, DBServiceException {
         String query = String.format(SQL_CREATE, entity.getId(), entity.getProductId(), entity.getName(),
-                entity.getState(), entity.getReleaseId(), entity.getAssignTo(),entity.getInitiativeId(),
-                entity.getGoals(), entity.getEpicId(), entity.getRequirements(), entity.getDescription(),
+                entity.getType(), entity.getState(), entity.getReleaseId(), entity.getDescription(),
                 entity.getFiles(), entity.getCreatedAt(), entity.getCreatedBy());
         dataHelper.executeSQL(query);
     }

@@ -18,25 +18,25 @@ public class RequirementDaoImpl implements RequirementDao {
     private DataHelper dataHelper;
 
     private static final String SQL_CREATE =
-            "INSERT INTO feature(id, feature_id, name, assign_to, description, files, created_at, created_by) " +
+            "INSERT INTO requirement(id, feature_id, name, state, description, files, created_at, created_by) " +
                     "values(%d, %d, '%s', %d, '%s','%s', %d, %d)";
     private static final String SQL_SELECT_BY_ID =
-            "SELECT * FROM feature WHERE id = %d";
+            "SELECT * FROM requirement WHERE id = %d";
     private static final String SQL_SELECT_BY_FEATURE_ID =
-            "SELECT * FROM feature WHERE feature_id = %d";
+            "SELECT * FROM requirement WHERE feature_id = %d";
     private static final String SQL_UPDATE =
-            "UPDATE feature SET name = '%s', assign_to = %d, description = '%s', files = '%s' " +
+            "UPDATE requirement SET name = '%s', state = %d, assign_to = %d, description = '%s', files = '%s' " +
                     "WHERE id = %d";
     private static final String SQL_DELETE_BY_ID =
-            "DELETE FROM feature WHERE id = %d";
+            "DELETE FROM requirement WHERE id = %d";
     private static final String SQL_DELETE_BY_FEATURE_ID =
-            "DELETE FROM feature WHERE feature_id = %d";
+            "DELETE FROM requirement WHERE feature_id = %d";
 
 
     @Override
     public void create(RequirementEntity entity) throws IOException, DBServiceException {
         String query = String.format(SQL_CREATE, entity.getId(), entity.getFeatureId(), entity.getName(),
-                entity.getAssignTo(), entity.getDescription(),entity.getFiles(), entity.getCreatedAt(),
+                entity.getState(), entity.getDescription(),entity.getFiles(), entity.getCreatedAt(),
                 entity.getCreatedBy());
         dataHelper.executeSQL(query);
     }
@@ -59,7 +59,7 @@ public class RequirementDaoImpl implements RequirementDao {
 
     @Override
     public void update(RequirementEntity entity) throws IOException, DBServiceException {
-        String query = String.format(SQL_UPDATE, entity.getName(), entity.getAssignTo(),
+        String query = String.format(SQL_UPDATE, entity.getName(), entity.getState(), entity.getAssignTo(),
                 entity.getDescription(), entity.getFiles(), entity.getId());
         dataHelper.executeSQL(query);
     }

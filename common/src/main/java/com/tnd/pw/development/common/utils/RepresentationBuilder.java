@@ -4,7 +4,9 @@ import com.tnd.pw.action.common.representations.CsActionRepresentation;
 import com.tnd.pw.development.common.representations.*;
 import com.tnd.pw.development.feature.constants.FeatureState;
 import com.tnd.pw.development.feature.constants.FeatureType;
+import com.tnd.pw.development.feature.constants.RequirementState;
 import com.tnd.pw.development.feature.entity.FeatureEntity;
+import com.tnd.pw.development.feature.entity.RequirementEntity;
 import com.tnd.pw.development.release.constants.EpicState;
 import com.tnd.pw.development.release.constants.PhaseType;
 import com.tnd.pw.development.release.constants.ReleaseState;
@@ -138,9 +140,11 @@ public class RepresentationBuilder {
                 releaseRep.setId(releaseEntity.getId());
                 releaseRep.setName(releaseEntity.getName());
 
-                List<FeatureRep> featureRepList = featureEntities.stream().filter(feature-> feature.getReleaseId().compareTo(releaseEntity.getId())==0)
-                        .map(feature->buildFeatureRep(feature,null)).collect(Collectors.toList());
-
+                List<FeatureRep> featureRepList = new ArrayList<>();
+                if(featureEntities != null) {
+                    featureRepList = featureEntities.stream().filter(feature -> feature.getReleaseId().compareTo(releaseEntity.getId()) == 0)
+                            .map(feature -> buildFeatureRep(feature, null)).collect(Collectors.toList());
+                }
                 featureReps.put(GsonUtils.convertToString(releaseRep), featureRepList);
             }
         }
@@ -149,7 +153,7 @@ public class RepresentationBuilder {
         return representation;
     }
 
-    private static FeatureRep buildFeatureRep(FeatureEntity feature, CsActionRepresentation actionRep) {
+    public static FeatureRep buildFeatureRep(FeatureEntity feature, CsActionRepresentation actionRep) {
         FeatureRep featureRep = new FeatureRep();
 
         featureRep.setId(feature.getId());
@@ -174,5 +178,31 @@ public class RepresentationBuilder {
             featureRep.setCreatedBy(feature.getCreatedBy());
         }
         return featureRep;
+    }
+
+    public static CsDevRepresentation buildListRequirement(List<RequirementEntity> requirementEntities) {
+        List<RequirementRep> requirementReps = new ArrayList<>();
+        if(requirementEntities != null) {
+            for (RequirementEntity entity : requirementEntities) {
+                requirementReps.add(buildRequirementRep(entity));
+            }
+        }
+        CsDevRepresentation representation = new CsDevRepresentation();
+        representation.setRequirementReps(requirementReps);
+        return representation;
+    }
+
+    public static RequirementRep buildRequirementRep(RequirementEntity entity) {
+        RequirementRep requirementRep = new RequirementRep();
+        requirementRep.setId(entity.getId());
+        requirementRep.setName(entity.getName());
+        requirementRep.setState(RequirementState.values()[entity.getState()].name());
+        requirementRep.setAssignTo(entity.getAssignTo());
+        requirementRep.setFeatureId(entity.getFeatureId());
+        requirementRep.setDescription(entity.getDescription());
+        requirementRep.setFiles(entity.getFiles());
+        requirementRep.setCreatedAt(entity.getCreatedAt());
+        requirementRep.setCreatedBy(entity.getCreatedBy());
+        return requirementRep;
     }
 }

@@ -32,6 +32,7 @@ public class ReleaseServiceImpl implements ReleaseService {
         entity.setId(GenUID.genIdByProduct(entity.getProductId()));
         entity.setCreatedAt(System.currentTimeMillis());
         entity.setState(ReleaseState.UNDER_CONSIDERATION.ordinal());
+        entity.setTheme(entity.getTheme() != null ? entity.getTheme() : "");
         releaseDao.create(entity);
         return entity;
     }
@@ -55,6 +56,7 @@ public class ReleaseServiceImpl implements ReleaseService {
     public ReleasePhaseEntity createReleasePhase(ReleasePhaseEntity entity) throws IOException, DBServiceException {
         entity.setId(GenUID.genIdByParent(entity.getReleaseId()));
         entity.setColor("#E24D4D");
+        entity.setDate(entity.getDate() != null ? entity.getDate() : "");
         releasePhaseDao.create(entity);
         return entity;
     }

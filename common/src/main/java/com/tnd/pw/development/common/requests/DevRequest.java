@@ -45,6 +45,12 @@ public class DevRequest extends ProductTokenRequest {
     private String date;
     @SerializedName("assign_to")
     private Long assignTo;
+    @SerializedName("epic_id")
+    private Long epicId;
+    @SerializedName("feature_id")
+    private Long featureId;
+    @SerializedName("is_generate_phases")
+    private boolean isGeneratePhases;
 
     @SerializedName("template")
     private Boolean template;
