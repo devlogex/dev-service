@@ -28,7 +28,7 @@ public class ReleaseServiceImpl implements ReleaseService {
     private EpicDao epicDao;
 
     @Override
-    public ReleaseEntity createRelease(ReleaseEntity entity) throws IOException, DBServiceException {
+    public ReleaseEntity createRelease(ReleaseEntity entity) throws DBServiceException {
         entity.setId(GenUID.genIdByProduct(entity.getProductId()));
         entity.setCreatedAt(System.currentTimeMillis());
         entity.setState(ReleaseState.UNDER_CONSIDERATION.ordinal());
@@ -38,22 +38,22 @@ public class ReleaseServiceImpl implements ReleaseService {
     }
 
     @Override
-    public List<ReleaseEntity> getRelease(ReleaseEntity entity) throws IOException, DBServiceException, ReleaseNotFoundException {
+    public List<ReleaseEntity> getRelease(ReleaseEntity entity) throws DBServiceException, ReleaseNotFoundException {
         return releaseDao.get(entity);
     }
 
     @Override
-    public void updateRelease(ReleaseEntity entity) throws IOException, DBServiceException {
+    public void updateRelease(ReleaseEntity entity) throws DBServiceException {
         releaseDao.update(entity);
     }
 
     @Override
-    public void removeRelease(ReleaseEntity entity) throws IOException, DBServiceException {
+    public void removeRelease(ReleaseEntity entity) throws DBServiceException {
         releaseDao.remove(entity);
     }
 
     @Override
-    public ReleasePhaseEntity createReleasePhase(ReleasePhaseEntity entity) throws IOException, DBServiceException {
+    public ReleasePhaseEntity createReleasePhase(ReleasePhaseEntity entity) throws DBServiceException {
         entity.setId(GenUID.genIdByParent(entity.getReleaseId()));
         entity.setColor("#E24D4D");
         entity.setDate(entity.getDate() != null ? entity.getDate() : "");
@@ -62,22 +62,22 @@ public class ReleaseServiceImpl implements ReleaseService {
     }
 
     @Override
-    public List<ReleasePhaseEntity> getReleasePhase(ReleasePhaseEntity entity) throws IOException, DBServiceException, ReleasePhaseNotFoundException {
+    public List<ReleasePhaseEntity> getReleasePhase(ReleasePhaseEntity entity) throws DBServiceException, ReleasePhaseNotFoundException {
         return releasePhaseDao.get(entity);
     }
 
     @Override
-    public void updateReleasePhase(ReleasePhaseEntity entity) throws IOException, DBServiceException {
+    public void updateReleasePhase(ReleasePhaseEntity entity) throws DBServiceException {
         releasePhaseDao.update(entity);
     }
 
     @Override
-    public void removeReleasePhase(ReleasePhaseEntity entity) throws IOException, DBServiceException {
+    public void removeReleasePhase(ReleasePhaseEntity entity) throws DBServiceException {
         releasePhaseDao.remove(entity);
     }
 
     @Override
-    public EpicEntity createEpic(EpicEntity entity) throws IOException, DBServiceException {
+    public EpicEntity createEpic(EpicEntity entity) throws DBServiceException {
         entity.setId(GenUID.genIdByProduct(entity.getProductId()));
         entity.setCreatedAt(System.currentTimeMillis());
         entity.setState(EpicState.UNDER_CONSIDERATION.ordinal());
@@ -88,17 +88,17 @@ public class ReleaseServiceImpl implements ReleaseService {
     }
 
     @Override
-    public List<EpicEntity> getEpic(EpicEntity entity) throws IOException, DBServiceException, EpicNotFoundException {
+    public List<EpicEntity> getEpic(EpicEntity entity) throws DBServiceException, EpicNotFoundException {
         return epicDao.get(entity);
     }
 
     @Override
-    public void updateEpic(EpicEntity entity) throws IOException, DBServiceException {
+    public void updateEpic(EpicEntity entity) throws DBServiceException {
         epicDao.update(entity);
     }
 
     @Override
-    public void removeEpic(EpicEntity entity) throws IOException, DBServiceException {
+    public void removeEpic(EpicEntity entity) throws DBServiceException {
         epicDao.remove(entity);
     }
 }

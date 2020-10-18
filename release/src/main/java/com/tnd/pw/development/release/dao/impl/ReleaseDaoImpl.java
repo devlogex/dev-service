@@ -19,11 +19,11 @@ public class ReleaseDaoImpl implements ReleaseDao {
             "INSERT INTO release(id, product_id, name, state, owner, theme, created_at, created_by) " +
                     "values(%d, %d, '%s', %d, %d, '%s', %d, %d)";
     private static final String SQL_SELECT_BY_ID =
-            "SELECT * FROM release WHERE id = %d";
+            "SELECT * FROM release WHERE id = %d ORDER BY created_at";
     private static final String SQL_SELECT_BY_PRODUCT_ID =
-            "SELECT * FROM release WHERE product_id = %d";
+            "SELECT * FROM release WHERE product_id = %d ORDER BY created_at";
     private static final String SQL_SELECT_BY_DURATION =
-            "SELECT * FROM release WHERE ( %d BETWEEN start_on AND end_on ) AND ( %d BETWEEN start_on AND end_on )";
+            "SELECT * FROM release WHERE ( %d BETWEEN start_on AND end_on ) AND ( %d BETWEEN start_on AND end_on ) ORDER BY created_at";
     private static final String SQL_UPDATE =
             "UPDATE release SET name = '%s', state = %d, owner = %d, initiative_id = %d, goals = '%s', " +
                     "start_on = %d, end_on = %d, days_to_release = %d, release_date = %d, develop_start_on = %d, " +
@@ -34,7 +34,7 @@ public class ReleaseDaoImpl implements ReleaseDao {
 
 
     @Override
-    public void create(ReleaseEntity entity) throws IOException, DBServiceException {
+    public void create(ReleaseEntity entity) throws DBServiceException {
         String query = String.format(SQL_CREATE, entity.getId(), entity.getProductId(), entity.getName(),
                 entity.getState(), entity.getOwner(), entity.getTheme(),
                 entity.getCreatedAt(), entity.getCreatedBy());
@@ -42,7 +42,7 @@ public class ReleaseDaoImpl implements ReleaseDao {
     }
 
     @Override
-    public List<ReleaseEntity> get(ReleaseEntity entity) throws IOException, DBServiceException, ReleaseNotFoundException {
+    public List<ReleaseEntity> get(ReleaseEntity entity) throws DBServiceException, ReleaseNotFoundException {
         String query = "";
         if(entity.getId() != null) {
             query = String.format(SQL_SELECT_BY_ID, entity.getId());
@@ -61,7 +61,7 @@ public class ReleaseDaoImpl implements ReleaseDao {
     }
 
     @Override
-    public void update(ReleaseEntity entity) throws IOException, DBServiceException {
+    public void update(ReleaseEntity entity) throws DBServiceException {
         String query = String.format(SQL_UPDATE, entity.getName(), entity.getState(),entity.getOwner(),
                 entity.getInitiativeId(),entity.getGoals(), entity.getStartOn(), entity.getEndOn(),
                 entity.getDaysToRelease(), entity.getReleaseDate(), entity.getDevelopStartOn(),
@@ -71,7 +71,7 @@ public class ReleaseDaoImpl implements ReleaseDao {
     }
 
     @Override
-    public void remove(ReleaseEntity entity) throws IOException, DBServiceException {
+    public void remove(ReleaseEntity entity) throws DBServiceException {
         String query = String.format(SQL_DELETE, entity.getId());
         dataHelper.executeSQL(query);
     }

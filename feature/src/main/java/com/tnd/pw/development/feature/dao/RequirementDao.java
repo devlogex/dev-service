@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.util.List;
 
 public interface RequirementDao {
-    void create(RequirementEntity entity) throws IOException, DBServiceException;
-    List<RequirementEntity> get(RequirementEntity entity) throws IOException, DBServiceException, RequirementNotFoundException;
-    void update(RequirementEntity entity) throws IOException, DBServiceException;
-    void remove(RequirementEntity entity) throws IOException, DBServiceException;
+    void create(RequirementEntity entity) throws DBServiceException;
+    List<RequirementEntity> get(RequirementEntity entity) throws DBServiceException, RequirementNotFoundException;
+    void update(RequirementEntity entity) throws DBServiceException;
+    void remove(RequirementEntity entity) throws DBServiceException;
 }

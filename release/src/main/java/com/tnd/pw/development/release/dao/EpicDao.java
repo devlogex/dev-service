@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.util.List;
 
 public interface EpicDao {
-    void create(EpicEntity entity) throws IOException, DBServiceException;
-    List<EpicEntity> get(EpicEntity entity) throws IOException, DBServiceException, EpicNotFoundException;
-    void update(EpicEntity entity) throws IOException, DBServiceException;
-    void remove(EpicEntity entity) throws IOException, DBServiceException;
+    void create(EpicEntity entity) throws DBServiceException;
+    List<EpicEntity> get(EpicEntity entity) throws DBServiceException, EpicNotFoundException;
+    void update(EpicEntity entity) throws DBServiceException;
+    void remove(EpicEntity entity) throws DBServiceException;
 }

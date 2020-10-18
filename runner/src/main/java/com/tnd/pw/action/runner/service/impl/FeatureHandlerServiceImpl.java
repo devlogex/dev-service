@@ -3,11 +3,13 @@ package com.tnd.pw.action.runner.service.impl;
 import com.tnd.common.api.common.Utils.GenUID;
 import com.tnd.dbservice.common.exception.DBServiceException;
 import com.tnd.pw.action.common.representations.CsActionRepresentation;
+import com.tnd.pw.action.runner.exception.ActionServiceFailedException;
 import com.tnd.pw.action.runner.service.FeatureHandlerService;
 import com.tnd.pw.development.common.representations.CsDevRepresentation;
 import com.tnd.pw.development.common.representations.FeatureRep;
 import com.tnd.pw.development.common.representations.RequirementRep;
 import com.tnd.pw.development.common.requests.DevRequest;
+import com.tnd.pw.development.common.utils.GsonUtils;
 import com.tnd.pw.development.common.utils.RepresentationBuilder;
 import com.tnd.pw.development.feature.constants.FeatureState;
 import com.tnd.pw.development.feature.constants.FeatureType;
@@ -20,8 +22,6 @@ import com.tnd.pw.development.feature.service.FeatureService;
 import com.tnd.pw.development.release.entity.ReleaseEntity;
 import com.tnd.pw.development.release.exception.ReleaseNotFoundException;
 import com.tnd.pw.development.release.service.ReleaseService;
-import com.tnd.pw.strategy.call.api.CallActionApi;
-import com.tnd.pw.strategy.call.api.exceptions.CallApiFailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,12 +35,12 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
     @Autowired
     private FeatureService featureService;
     @Autowired
-    private CallActionApi callActionApi;
+    private SdkService sdkService;
     @Autowired
     private ReleaseService releaseService;
 
     @Override
-    public CsDevRepresentation addFeature(DevRequest request) throws IOException, DBServiceException, ReleaseNotFoundException, FeatureNotFoundException {
+    public CsDevRepresentation addFeature(DevRequest request) throws DBServiceException, ReleaseNotFoundException, FeatureNotFoundException {
         Long productId = GenUID.getProductId(request.getId());
         featureService.createFeature(
                 FeatureEntity.builder()
@@ -58,7 +58,7 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
     }
 
     @Override
-    public CsDevRepresentation updateFeature(DevRequest request) throws DBServiceException, FeatureNotFoundException, IOException {
+    public CsDevRepresentation updateFeature(DevRequest request) throws DBServiceException, FeatureNotFoundException {
         FeatureEntity featureEntity = featureService.getFeature(
                 FeatureEntity.builder()
                         .id(request.getId())
@@ -83,7 +83,7 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
             featureEntity.setInitiativeId(request.getInitiativeId());
         }
         if(request.getGoals() != null) {
-            featureEntity.setGoals(request.getGoals());
+            featureEntity.setGoals(GsonUtils.convertToString(request.getGoals()));
         }
         if(request.getEpicId() != null) {
             featureEntity.setEpicId(request.getEpicId());
@@ -99,23 +99,23 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
     }
 
     @Override
-    public CsDevRepresentation getFeature(DevRequest request) throws IOException, DBServiceException {
+    public CsDevRepresentation getFeature(DevRequest request) throws DBServiceException {
         return getFeatures(request.getId());
     }
 
     @Override
-    public FeatureRep getFeatureInfo(DevRequest request) throws DBServiceException, FeatureNotFoundException, IOException, CallApiFailException {
+    public FeatureRep getFeatureInfo(DevRequest request) throws DBServiceException, FeatureNotFoundException, ActionServiceFailedException {
         FeatureEntity featureEntity = featureService.getFeature(
                 FeatureEntity.builder()
                         .id(request.getId())
                         .build()
         ).get(0);
-        CsActionRepresentation actionRep = callActionApi.call(featureEntity.getId(), request);
+        CsActionRepresentation actionRep = sdkService.getTodoComment(featureEntity.getId());
         return RepresentationBuilder.buildFeatureRep(featureEntity, actionRep);
     }
 
     @Override
-    public CsDevRepresentation removeFeature(DevRequest request) throws IOException, DBServiceException, FeatureNotFoundException {
+    public CsDevRepresentation removeFeature(DevRequest request) throws DBServiceException, FeatureNotFoundException {
         FeatureEntity featureEntity = featureService.getFeature(
                 FeatureEntity.builder()
                         .id(request.getId())
@@ -126,7 +126,7 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
     }
 
     @Override
-    public CsDevRepresentation addRequirement(DevRequest request) throws IOException, DBServiceException {
+    public CsDevRepresentation addRequirement(DevRequest request) throws DBServiceException {
         RequirementEntity requirement = featureService.createRequirement(
                 RequirementEntity.builder()
                         .featureId(request.getId())
@@ -139,22 +139,23 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
     }
 
     @Override
-    public CsDevRepresentation getRequirement(DevRequest request) throws DBServiceException, IOException {
+    public CsDevRepresentation getRequirement(DevRequest request) throws DBServiceException {
         return getRequirement(request.getId());
     }
 
     @Override
-    public RequirementRep getRequirementInfo(DevRequest request) throws DBServiceException, RequirementNotFoundException, IOException {
+    public RequirementRep getRequirementInfo(DevRequest request) throws DBServiceException, RequirementNotFoundException, ActionServiceFailedException {
         RequirementEntity requirementEntity = featureService.getRequirement(
                 RequirementEntity.builder()
                         .id(request.getId())
                         .build()
         ).get(0);
-        return RepresentationBuilder.buildRequirementRep(requirementEntity);
+        CsActionRepresentation actionRep = sdkService.getTodoComment(requirementEntity.getId());
+        return RepresentationBuilder.buildRequirementRep(requirementEntity, actionRep);
     }
 
     @Override
-    public CsDevRepresentation updateRequirement(DevRequest request) throws DBServiceException, RequirementNotFoundException, IOException {
+    public CsDevRepresentation updateRequirement(DevRequest request) throws DBServiceException, RequirementNotFoundException {
         RequirementEntity requirementEntity = featureService.getRequirement(
                 RequirementEntity.builder()
                         .id(request.getId())
@@ -180,7 +181,7 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
     }
 
     @Override
-    public CsDevRepresentation removeRequirement(DevRequest request) throws DBServiceException, RequirementNotFoundException, IOException {
+    public CsDevRepresentation removeRequirement(DevRequest request) throws DBServiceException, RequirementNotFoundException {
         RequirementEntity requirementEntity = featureService.getRequirement(
                 RequirementEntity.builder()
                         .id(request.getId())
@@ -190,7 +191,7 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
         return getRequirement(requirementEntity.getFeatureId());
     }
 
-    public CsDevRepresentation getRequirement(Long featureId) throws IOException, DBServiceException {
+    public CsDevRepresentation getRequirement(Long featureId) throws DBServiceException {
         List<RequirementEntity> requirementEntities = null;
         try {
             requirementEntities = featureService.getRequirement(
@@ -203,7 +204,7 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
         return RepresentationBuilder.buildListRequirement(requirementEntities);
     }
 
-    private CsDevRepresentation getFeatures(Long productId) throws IOException, DBServiceException {
+    private CsDevRepresentation getFeatures(Long productId) throws DBServiceException {
         List<ReleaseEntity> releaseEntities = null;
         List<FeatureEntity> featureEntities = null;
         try {

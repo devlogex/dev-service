@@ -22,9 +22,9 @@ public class ReleasePhaseDaoImpl implements ReleasePhaseDao {
             "INSERT INTO release_phase(id, release_id, name, type, color, date) " +
                     "values(%d, %d, '%s', %d, '%s', '%s')";
     private static final String SQL_SELECT_BY_ID =
-            "SELECT * FROM release_phase WHERE id = %d";
+            "SELECT * FROM release_phase WHERE id = %d ORDER BY created_at";
     private static final String SQL_SELECT_BY_RELEASE_ID =
-            "SELECT * FROM release_phase WHERE release_id = %d";
+            "SELECT * FROM release_phase WHERE release_id = %d ORDER BY created_at";
     private static final String SQL_UPDATE =
             "UPDATE release_phase SET name = '%s', type = %d, date = '%S', color = '%s', description = '%s', " +
                     "files = '%s' WHERE id = %d";
@@ -34,14 +34,14 @@ public class ReleasePhaseDaoImpl implements ReleasePhaseDao {
             "DELETE FROM release_phase WHERE release_id = %d";
 
     @Override
-    public void create(ReleasePhaseEntity entity) throws IOException, DBServiceException {
+    public void create(ReleasePhaseEntity entity) throws DBServiceException {
         String query = String.format(SQL_CREATE, entity.getId(), entity.getReleaseId(), entity.getName(),
                 entity.getType(), entity.getColor(), entity.getDate());
         dataHelper.executeSQL(query);
     }
 
     @Override
-    public List<ReleasePhaseEntity> get(ReleasePhaseEntity entity) throws IOException, DBServiceException, ReleasePhaseNotFoundException {
+    public List<ReleasePhaseEntity> get(ReleasePhaseEntity entity) throws DBServiceException, ReleasePhaseNotFoundException {
         String query = "";
         if(entity.getId() != null) {
             query = String.format(SQL_SELECT_BY_ID, entity.getId());
@@ -57,14 +57,14 @@ public class ReleasePhaseDaoImpl implements ReleasePhaseDao {
     }
 
     @Override
-    public void update(ReleasePhaseEntity entity) throws IOException, DBServiceException {
+    public void update(ReleasePhaseEntity entity) throws DBServiceException {
         String query = String.format(SQL_UPDATE, entity.getName(), entity.getType(),entity.getDate(),
                 entity.getColor(),entity.getDescription(), entity.getFiles(), entity.getId());
         dataHelper.executeSQL(query);
     }
 
     @Override
-    public void remove(ReleasePhaseEntity entity) throws IOException, DBServiceException {
+    public void remove(ReleasePhaseEntity entity) throws DBServiceException {
         String query = "";
         if(entity.getId() != null) {
             query = String.format(SQL_DELETE_BY_ID, entity.getId());

@@ -20,6 +20,10 @@
             <groupId>com.tnd.dbservice</groupId>
             <artifactId>common</artifactId>
         </dependency>
+        <dependency>
+            <groupId>com.tnd.dbservice</groupId>
+            <artifactId>sdk</artifactId>
+        </dependency>
     </dependencies>
 
     <build>

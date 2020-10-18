@@ -13,7 +13,6 @@
         <module>dbservice</module>
         <module>release</module>
         <module>feature</module>
-        <module>call-api</module>
         <module>common</module>
     </modules>
 
@@ -125,43 +124,19 @@
             </dependency>
             <dependency>
                 <groupId>com.tnd.pw.development</groupId>
-                <artifactId>call-api</artifactId>
+                <artifactId>dbservice</artifactId>
                 <version>${dev.version}</version>
             </dependency>
             <dependency>
-                <groupId>com.tnd.pw.development</groupId>
-                <artifactId>dbservice</artifactId>
-                <version>${dev.version}</version>
+                <groupId>com.tnd.dbservice</groupId>
+                <artifactId>sdk</artifactId>
+                <version>${dbservice.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>
 
     <build>
         <plugins>
-            <plugin>
-                <artifactId>maven-assembly-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <phase>package</phase>
-                        <goals>
-                            <goal>single</goal>
-                        </goals>
-                    </execution>
-                </executions>
-                <configuration>
-                    <archive>
-                        <manifest>
-                            <addClasspath>true</addClasspath>
-                            <mainClass>com.tnd.pw.action.runner.ActionRunner</mainClass>
-                        </manifest>
-                    </archive>
-                    <descriptorRefs>
-                        <descriptorRef>jar-with-dependencies</descriptorRef>
-                    </descriptorRefs>
-                    <finalName>development</finalName>
-                </configuration>
-            </plugin>
-
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

@@ -48,10 +48,6 @@
         </dependency>
         <dependency>
             <groupId>com.tnd.pw.development</groupId>
-            <artifactId>call-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>com.tnd.pw.development</groupId>
             <artifactId>feature</artifactId>
         </dependency>
 

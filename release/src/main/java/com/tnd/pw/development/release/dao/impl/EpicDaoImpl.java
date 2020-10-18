@@ -22,11 +22,11 @@ public class EpicDaoImpl implements EpicDao {
                     "description, files, created_at, created_by) " +
                     "values(%d, %d, '%s', %d, %d, '%s', '%s', %d, %d)";
     private static final String SQL_SELECT_BY_ID =
-            "SELECT * FROM epic WHERE id = %d";
+            "SELECT * FROM epic WHERE id = %d ORDER BY created_at";
     private static final String SQL_SELECT_BY_PRODUCT_ID =
-            "SELECT * FROM epic WHERE product_id = %d";
+            "SELECT * FROM epic WHERE product_id = %d ORDER BY created_at";
     private static final String SQL_SELECT_BY_RELEASE_ID =
-            "SELECT * FROM epic WHERE release_id = %d";
+            "SELECT * FROM epic WHERE release_id = %d ORDER BY created_at";
     private static final String SQL_UPDATE =
             "UPDATE epic SET name = '%s', state = %d, release_id = %d, initiative_id = %d, goals = '%s', " +
                     "assign_to = %d, description = '%s', files = '%s' " +
@@ -35,7 +35,7 @@ public class EpicDaoImpl implements EpicDao {
             "DELETE FROM epic WHERE id = %d";
 
     @Override
-    public void create(EpicEntity entity) throws IOException, DBServiceException {
+    public void create(EpicEntity entity) throws DBServiceException {
         String query = String.format(SQL_CREATE, entity.getId(), entity.getProductId(), entity.getName(),
                 entity.getState(), entity.getReleaseId(), entity.getDescription(),
                 entity.getFiles(), entity.getCreatedAt(), entity.getCreatedBy());
@@ -43,7 +43,7 @@ public class EpicDaoImpl implements EpicDao {
     }
 
     @Override
-    public List<EpicEntity> get(EpicEntity entity) throws IOException, DBServiceException, EpicNotFoundException {
+    public List<EpicEntity> get(EpicEntity entity) throws DBServiceException, EpicNotFoundException {
         String query = "";
         if(entity.getId() != null) {
             query = String.format(SQL_SELECT_BY_ID, entity.getId());
@@ -62,7 +62,7 @@ public class EpicDaoImpl implements EpicDao {
     }
 
     @Override
-    public void update(EpicEntity entity) throws IOException, DBServiceException {
+    public void update(EpicEntity entity) throws DBServiceException {
         String query = String.format(SQL_UPDATE, entity.getName(), entity.getState(),entity.getReleaseId(),
                 entity.getInitiativeId(),entity.getGoals(), entity.getAssignTo(), entity.getDescription(),
                 entity.getFiles(), entity.getId());
@@ -70,7 +70,7 @@ public class EpicDaoImpl implements EpicDao {
     }
 
     @Override
-    public void remove(EpicEntity entity) throws IOException, DBServiceException {
+    public void remove(EpicEntity entity) throws DBServiceException {
         String query = String.format(SQL_DELETE, entity.getId());
         dataHelper.executeSQL(query);
     }

@@ -3,6 +3,7 @@ package com.tnd.pw.action.runner;
 import com.tnd.com.ioc.SpringApplicationContext;
 import com.tnd.common.api.server.CommonServer;
 import com.tnd.pw.action.runner.config.DevelopmentConfig;
+import com.tnd.pw.action.runner.handler.DevHandler;
 import com.tnd.pw.action.runner.handler.FeatureHandler;
 import com.tnd.pw.action.runner.handler.ReleaseHandler;
 import org.springframework.context.annotation.AnnotationConfigApplicationContext;
@@ -17,13 +18,9 @@ public class DevelopmentRunner {
         CommonServer commonServer = new CommonServer();
         commonServer.register(SpringApplicationContext.getBean(FeatureHandler.class));
         commonServer.register(SpringApplicationContext.getBean(ReleaseHandler.class));
+        commonServer.register(SpringApplicationContext.getBean(DevHandler.class));
 
-        String port = System.getenv("PORT");
-        if (port == null) {
-            commonServer.initServlet(8005);
-        } else {
-            commonServer.initServlet(Integer.parseInt(port));
-        }
+        commonServer.initServlet(8005);
         commonServer.startServer();
     }
 }

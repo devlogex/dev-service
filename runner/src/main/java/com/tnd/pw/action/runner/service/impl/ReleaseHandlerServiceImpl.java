@@ -3,13 +3,18 @@ package com.tnd.pw.action.runner.service.impl;
 import com.tnd.common.api.common.Utils.GenUID;
 import com.tnd.dbservice.common.exception.DBServiceException;
 import com.tnd.pw.action.common.representations.CsActionRepresentation;
+import com.tnd.pw.action.runner.exception.ActionServiceFailedException;
 import com.tnd.pw.action.runner.service.ReleaseHandlerService;
 import com.tnd.pw.development.common.representations.CsDevRepresentation;
 import com.tnd.pw.development.common.representations.EpicRep;
 import com.tnd.pw.development.common.representations.ReleasePhaseRep;
 import com.tnd.pw.development.common.representations.ReleaseRep;
 import com.tnd.pw.development.common.requests.DevRequest;
+import com.tnd.pw.development.common.utils.GsonUtils;
 import com.tnd.pw.development.common.utils.RepresentationBuilder;
+import com.tnd.pw.development.feature.entity.FeatureEntity;
+import com.tnd.pw.development.feature.exception.FeatureNotFoundException;
+import com.tnd.pw.development.feature.service.FeatureService;
 import com.tnd.pw.development.release.constants.EpicState;
 import com.tnd.pw.development.release.constants.PhaseType;
 import com.tnd.pw.development.release.constants.ReleaseState;
@@ -20,16 +25,15 @@ import com.tnd.pw.development.release.exception.EpicNotFoundException;
 import com.tnd.pw.development.release.exception.ReleaseNotFoundException;
 import com.tnd.pw.development.release.exception.ReleasePhaseNotFoundException;
 import com.tnd.pw.development.release.service.ReleaseService;
-import com.tnd.pw.strategy.call.api.CallActionApi;
-import com.tnd.pw.strategy.call.api.exceptions.CallApiFailException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
     private static final Logger LOGGER = LoggerFactory.getLogger(ReleaseHandlerServiceImpl.class);
@@ -37,16 +41,20 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
     @Autowired
     private ReleaseService releaseService;
     @Autowired
-    private CallActionApi callActionApi;
+    private FeatureService featureService;
+    @Autowired
+    private SdkService sdkService;
 
     @Override
-    public CsDevRepresentation addRelease(DevRequest request) throws IOException, DBServiceException {
+    public CsDevRepresentation addRelease(DevRequest request) throws DBServiceException {
         ReleaseEntity release = releaseService.createRelease(
                 ReleaseEntity.builder()
                         .name(request.getName())
                         .productId(request.getId())
                         .owner(request.getOwner())
                         .theme(request.getTheme())
+                        .startOn(request.getStartOn())
+                        .endOn(request.getEndOn())
                         .createdBy(request.getPayload().getUserId())
                         .build()
         );
@@ -54,36 +62,31 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
             createDefaultPhases(release);
         }
 
-        List<ReleaseEntity> releaseEntities = null;
-        try {
-            releaseEntities = releaseService.getRelease(
-                    ReleaseEntity.builder()
-                            .productId(release.getProductId())
-                            .build()
-            );
-        } catch (ReleaseNotFoundException e) {}
-        return RepresentationBuilder.buildListReleaseRep(releaseEntities);
+        return getRelease(release.getProductId());
     }
 
     @Override
-    public CsDevRepresentation getRelease(DevRequest request) throws IOException, DBServiceException {
+    public CsDevRepresentation getRelease(DevRequest request) throws DBServiceException {
         return getRelease(request.getId());
     }
 
-    private CsDevRepresentation getRelease(Long productId) throws IOException, DBServiceException {
+    private CsDevRepresentation getRelease(Long productId) throws DBServiceException {
         List<ReleaseEntity> releaseEntities = null;
+        List<FeatureEntity> features = null;
         try {
             releaseEntities = releaseService.getRelease(
                     ReleaseEntity.builder()
                             .productId(productId)
                             .build()
             );
-        } catch (ReleaseNotFoundException e) {}
-        return RepresentationBuilder.buildListReleaseRep(releaseEntities);
+            List<Long> releaseIds = releaseEntities.stream().map(release->release.getId()).collect(Collectors.toList());
+            features = featureService.getFeature(releaseIds);
+        } catch (ReleaseNotFoundException | FeatureNotFoundException e) {}
+        return RepresentationBuilder.buildListReleaseRep(releaseEntities, features);
     }
 
     @Override
-    public ReleaseRep getReleaseInfo(DevRequest request) throws DBServiceException, ReleaseNotFoundException, IOException, CallApiFailException {
+    public ReleaseRep getReleaseInfo(DevRequest request) throws DBServiceException, ReleaseNotFoundException, ActionServiceFailedException {
         ReleaseEntity releaseEntity = releaseService.getRelease(
                 ReleaseEntity.builder()
                         .id(request.getId())
@@ -98,12 +101,12 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
             );
         } catch (ReleasePhaseNotFoundException e) {
         }
-        CsActionRepresentation actionRep = callActionApi.call(releaseEntity.getId(), request);
+        CsActionRepresentation actionRep = sdkService.getTodoComment(releaseEntity.getId());
         return RepresentationBuilder.buildReleaseRep(releaseEntity, actionRep, releasePhase);
     }
 
     @Override
-    public ReleaseRep updateRelease(DevRequest request) throws DBServiceException, ReleaseNotFoundException, IOException, CallApiFailException {
+    public ReleaseRep updateRelease(DevRequest request) throws DBServiceException, ReleaseNotFoundException, ActionServiceFailedException {
         ReleaseEntity releaseEntity = releaseService.getRelease(ReleaseEntity.builder().id(request.getId()).build()).get(0);
         if(request.getName() != null) {
             releaseEntity.setName(request.getName());
@@ -118,7 +121,7 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
             releaseEntity.setInitiativeId(request.getInitiativeId());
         }
         if(request.getGoals() != null) {
-            releaseEntity.setGoals(request.getGoals());
+            releaseEntity.setGoals(GsonUtils.convertToString(request.getGoals()));
         }
         if(request.getReleaseDate() != null) {
             releaseEntity.setReleaseDate(request.getReleaseDate());
@@ -146,12 +149,12 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
         try {
             releasePhase = releaseService.getReleasePhase(ReleasePhaseEntity.builder().releaseId(releaseEntity.getId()).build());
         } catch (ReleasePhaseNotFoundException e) {}
-        CsActionRepresentation actionRep = callActionApi.call(releaseEntity.getId(), request);
+        CsActionRepresentation actionRep = sdkService.getTodoComment(releaseEntity.getId());
         return RepresentationBuilder.buildReleaseRep(releaseEntity, actionRep, releasePhase);
     }
 
     @Override
-    public CsDevRepresentation removeRelease(DevRequest request) throws IOException, DBServiceException, ReleaseNotFoundException {
+    public CsDevRepresentation removeRelease(DevRequest request) throws DBServiceException, ReleaseNotFoundException {
         ReleaseEntity releaseEntity = releaseService.getRelease(
                 ReleaseEntity.builder()
                         .id(request.getId())
@@ -162,7 +165,7 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
     }
 
     @Override
-    public CsDevRepresentation addReleasePhase(DevRequest request) throws IOException, DBServiceException, ReleasePhaseNotFoundException {
+    public CsDevRepresentation addReleasePhase(DevRequest request) throws DBServiceException, ReleasePhaseNotFoundException {
         ReleasePhaseEntity releasePhase = releaseService.createReleasePhase(
                 ReleasePhaseEntity.builder()
                         .type(PhaseType.valueOf(request.getType()).ordinal())
@@ -179,18 +182,18 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
     }
 
     @Override
-    public ReleasePhaseRep getReleasePhaseInfo(DevRequest request) throws DBServiceException, IOException, ReleasePhaseNotFoundException, CallApiFailException {
+    public ReleasePhaseRep getReleasePhaseInfo(DevRequest request) throws DBServiceException, ReleasePhaseNotFoundException, ActionServiceFailedException {
         ReleasePhaseEntity releasePhaseEntity = releaseService.getReleasePhase(
                 ReleasePhaseEntity.builder()
                         .id(request.getId())
                         .build()
         ).get(0);
-        CsActionRepresentation actionRep = callActionApi.call(releasePhaseEntity.getId(), request);
+        CsActionRepresentation actionRep = sdkService.getTodoComment(releasePhaseEntity.getId());
         return RepresentationBuilder.buildReleasePhaseRep(releasePhaseEntity, actionRep);
     }
 
     @Override
-    public ReleasePhaseRep updateReleasePhase(DevRequest request) throws DBServiceException, IOException, ReleasePhaseNotFoundException, CallApiFailException {
+    public ReleasePhaseRep updateReleasePhase(DevRequest request) throws DBServiceException, ReleasePhaseNotFoundException, ActionServiceFailedException {
         ReleasePhaseEntity releasePhaseEntity = releaseService.getReleasePhase(
                 ReleasePhaseEntity.builder()
                         .id(request.getId())
@@ -220,12 +223,12 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
             releasePhaseEntity.setType(PhaseType.valueOf(request.getType()).ordinal());
         }
         releaseService.updateReleasePhase(releasePhaseEntity);
-        CsActionRepresentation actionRep = callActionApi.call(releasePhaseEntity.getId(), request);
+        CsActionRepresentation actionRep = sdkService.getTodoComment(releasePhaseEntity.getId());
         return RepresentationBuilder.buildReleasePhaseRep(releasePhaseEntity, actionRep);
     }
 
     @Override
-    public CsDevRepresentation removeReleasePhase(DevRequest request) throws DBServiceException, IOException, ReleasePhaseNotFoundException {
+    public CsDevRepresentation removeReleasePhase(DevRequest request) throws DBServiceException, ReleasePhaseNotFoundException {
         ReleasePhaseEntity releasePhaseEntity = releaseService.getReleasePhase(
                 ReleasePhaseEntity.builder()
                         .id(request.getId()).build()
@@ -235,7 +238,7 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
         return getReleasePhase(releasePhaseEntity.getReleaseId());
     }
 
-    private CsDevRepresentation getReleasePhase(Long releaseId) throws IOException, DBServiceException {
+    private CsDevRepresentation getReleasePhase(Long releaseId) throws DBServiceException {
         List<ReleasePhaseEntity> releasePhases = null;
         try {
             releasePhases = releaseService.getReleasePhase(
@@ -249,7 +252,7 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
     }
 
     @Override
-    public CsDevRepresentation addEpic(DevRequest request) throws IOException, DBServiceException, EpicNotFoundException {
+    public CsDevRepresentation addEpic(DevRequest request) throws DBServiceException, EpicNotFoundException {
         Long productId = GenUID.getProductId(request.getId());
         EpicEntity epic = releaseService.createEpic(
                 EpicEntity.builder()
@@ -270,19 +273,19 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
     }
 
     @Override
-    public EpicRep getEpicInfo(DevRequest request) throws DBServiceException, EpicNotFoundException, IOException, CallApiFailException {
+    public EpicRep getEpicInfo(DevRequest request) throws DBServiceException, EpicNotFoundException, ActionServiceFailedException {
         EpicEntity epicEntity = releaseService.getEpic(
                 EpicEntity.builder()
                         .id(request.getId())
                         .build()
         ).get(0);
 
-        CsActionRepresentation actionRep = callActionApi.call(epicEntity.getId(), request);
+        CsActionRepresentation actionRep = sdkService.getTodoComment(epicEntity.getId());
         return RepresentationBuilder.buildEpicRep(epicEntity, actionRep);
     }
 
     @Override
-    public EpicRep updateEpic(DevRequest request) throws DBServiceException, EpicNotFoundException, IOException, CallApiFailException {
+    public EpicRep updateEpic(DevRequest request) throws DBServiceException, EpicNotFoundException, ActionServiceFailedException {
         EpicEntity epicEntity = releaseService.getEpic(
                 EpicEntity.builder()
                         .id(request.getId())
@@ -301,7 +304,7 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
             epicEntity.setInitiativeId(request.getInitiativeId());
         }
         if(request.getGoals() != null) {
-            epicEntity.setGoals(request.getGoals());
+            epicEntity.setGoals(GsonUtils.convertToString(request.getGoals()));
         }
         if(request.getDescription() != null) {
             epicEntity.setDescription(request.getDescription());
@@ -314,12 +317,12 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
         }
 
         releaseService.updateEpic(epicEntity);
-        CsActionRepresentation actionRep = callActionApi.call(epicEntity.getId(), request);
+        CsActionRepresentation actionRep = sdkService.getTodoComment(epicEntity.getId());
         return RepresentationBuilder.buildEpicRep(epicEntity, actionRep);
     }
 
     @Override
-    public CsDevRepresentation removeEpic(DevRequest request) throws IOException, DBServiceException, EpicNotFoundException {
+    public CsDevRepresentation removeEpic(DevRequest request) throws DBServiceException, EpicNotFoundException {
         EpicEntity epicEntity = releaseService.getEpic(
                 EpicEntity.builder()
                         .id(request.getId())
@@ -329,7 +332,7 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
         return getEpic(epicEntity.getProductId());
     }
 
-    private CsDevRepresentation getEpic(Long productId) throws IOException, DBServiceException {
+    private CsDevRepresentation getEpic(Long productId) throws DBServiceException {
         List<EpicEntity> epicEntities = null;
         try {
             epicEntities = releaseService.getEpic(
@@ -343,17 +346,17 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
     }
 
     @Override
-    public CsDevRepresentation getEpic(DevRequest request) throws IOException, DBServiceException {
+    public CsDevRepresentation getEpic(DevRequest request) throws DBServiceException {
         return getEpic(request.getId());
     }
 
     @Override
-    public CsDevRepresentation getReleasePhase(DevRequest request) throws DBServiceException, IOException {
+    public CsDevRepresentation getReleasePhase(DevRequest request) throws DBServiceException {
         return getReleasePhase(request.getId());
     }
 
 
-    private void createDefaultPhases(ReleaseEntity release) throws IOException, DBServiceException {
+    private void createDefaultPhases(ReleaseEntity release) throws DBServiceException {
         Calendar calendar = Calendar.getInstance();
 
         releaseService.createReleasePhase(

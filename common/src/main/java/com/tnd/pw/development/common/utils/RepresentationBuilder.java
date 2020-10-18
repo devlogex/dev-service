@@ -21,16 +21,30 @@ import java.util.stream.Collectors;
 
 public class RepresentationBuilder {
 
-    public static CsDevRepresentation buildListReleaseRep(List<ReleaseEntity> releaseEntities) {
+    public static CsDevRepresentation buildListReleaseRep(List<ReleaseEntity> releaseEntities, List<FeatureEntity> featureEntities) {
         List<ReleaseRep> releaseReps = new ArrayList<>();
-        if(releaseEntities != null) {
-            for (ReleaseEntity releaseEntity : releaseEntities) {
-                releaseReps.add(buildReleaseRep(releaseEntity,null,null));
-            }
+        if(releaseEntities == null)
+            releaseEntities = new ArrayList<>();
+        if(featureEntities == null) {
+            featureEntities = new ArrayList<>();
+        }
+        for (ReleaseEntity releaseEntity : releaseEntities) {
+            List<FeatureEntity> featureOfRelease = featureEntities.stream().filter(feature -> feature.getReleaseId().compareTo(releaseEntity.getId())==0).collect(Collectors.toList());
+            ReleaseRep releaseRep = buildReleaseRep(releaseEntity, null, null);
+            releaseRep.setFeatureReps(buildListFeatureRep(featureOfRelease));
+            releaseReps.add(releaseRep);
         }
         CsDevRepresentation representation = new CsDevRepresentation();
         representation.setReleaseReps(releaseReps);
         return representation;
+    }
+
+    private static List<FeatureRep> buildListFeatureRep(List<FeatureEntity> featureEntities) {
+        List<FeatureRep> featureReps = new ArrayList<>();
+        for(FeatureEntity featureEntity: featureEntities) {
+            featureReps.add(buildFeatureRep(featureEntity, null));
+        }
+        return featureReps;
     }
 
     public static ReleaseRep buildReleaseRep(ReleaseEntity releaseEntity, CsActionRepresentation actionRep, List<ReleasePhaseEntity> releasePhaseEntities) {
@@ -139,6 +153,7 @@ public class RepresentationBuilder {
                 ReleaseRep releaseRep = new ReleaseRep();
                 releaseRep.setId(releaseEntity.getId());
                 releaseRep.setName(releaseEntity.getName());
+                releaseRep.setCreatedAt(releaseEntity.getCreatedAt());
 
                 List<FeatureRep> featureRepList = new ArrayList<>();
                 if(featureEntities != null) {
@@ -159,13 +174,13 @@ public class RepresentationBuilder {
         featureRep.setId(feature.getId());
         featureRep.setName(feature.getName());
         featureRep.setProductId(feature.getProductId());
+        featureRep.setState(FeatureState.values()[feature.getState()].name());
+        featureRep.setType(FeatureType.values()[feature.getType()].name());
 
         if(actionRep != null) {
             featureRep.setTodoReps(actionRep.getTodoReps());
             featureRep.setCommentReps(actionRep.getCommentReps());
 
-            featureRep.setState(FeatureState.values()[feature.getState()].name());
-            featureRep.setType(FeatureType.values()[feature.getType()].name());
             featureRep.setReleaseId(feature.getReleaseId());
             featureRep.setAssignTo(feature.getAssignTo());
             featureRep.setInitiativeId(feature.getInitiativeId());
@@ -184,7 +199,7 @@ public class RepresentationBuilder {
         List<RequirementRep> requirementReps = new ArrayList<>();
         if(requirementEntities != null) {
             for (RequirementEntity entity : requirementEntities) {
-                requirementReps.add(buildRequirementRep(entity));
+                requirementReps.add(buildRequirementRep(entity, null));
             }
         }
         CsDevRepresentation representation = new CsDevRepresentation();
@@ -192,7 +207,7 @@ public class RepresentationBuilder {
         return representation;
     }
 
-    public static RequirementRep buildRequirementRep(RequirementEntity entity) {
+    public static RequirementRep buildRequirementRep(RequirementEntity entity, CsActionRepresentation actionRep) {
         RequirementRep requirementRep = new RequirementRep();
         requirementRep.setId(entity.getId());
         requirementRep.setName(entity.getName());
@@ -203,6 +218,11 @@ public class RepresentationBuilder {
         requirementRep.setFiles(entity.getFiles());
         requirementRep.setCreatedAt(entity.getCreatedAt());
         requirementRep.setCreatedBy(entity.getCreatedBy());
+
+        if(actionRep != null) {
+            requirementRep.setTodoReps(actionRep.getTodoReps());
+            requirementRep.setCommentReps(actionRep.getCommentReps());
+        }
         return requirementRep;
     }
 }

@@ -1,13 +1,17 @@
 package com.tnd.pw.action.runner.config;
 
+import com.tnd.dbservice.sdk.api.DBServiceSdkClient;
+import com.tnd.dbservice.sdk.api.impl.DBServiceSdkClientImpl;
+import com.tnd.pw.action.runner.handler.DevHandler;
 import com.tnd.pw.action.runner.handler.FeatureHandler;
 import com.tnd.pw.action.runner.handler.ReleaseHandler;
 import com.tnd.pw.action.runner.service.FeatureHandlerService;
 import com.tnd.pw.action.runner.service.ReleaseHandlerService;
 import com.tnd.pw.action.runner.service.impl.FeatureHandlerServiceImpl;
 import com.tnd.pw.action.runner.service.impl.ReleaseHandlerServiceImpl;
-import com.tnd.pw.action.sdk.ActionSdkApi;
-import com.tnd.pw.development.dbservice.DBServiceApiClient;
+import com.tnd.pw.action.runner.service.impl.SdkService;
+import com.tnd.pw.action.sdk.ActionServiceSdkClient;
+import com.tnd.pw.action.sdk.impl.ActionServiceSdkClientImpl;
 import com.tnd.pw.development.dbservice.DataHelper;
 import com.tnd.pw.development.feature.dao.FeatureDao;
 import com.tnd.pw.development.feature.dao.RequirementDao;
@@ -23,7 +27,6 @@ import com.tnd.pw.development.release.dao.impl.ReleaseDaoImpl;
 import com.tnd.pw.development.release.dao.impl.ReleasePhaseDaoImpl;
 import com.tnd.pw.development.release.service.ReleaseService;
 import com.tnd.pw.development.release.service.impl.ReleaseServiceImpl;
-import com.tnd.pw.strategy.call.api.CallActionApi;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -32,29 +35,33 @@ import org.springframework.context.annotation.PropertySource;
 @Configuration
 @PropertySource("classpath:application.properties")
 public class DevelopmentConfig {
-    @Value("${db.url}")
-    private String db_url;
-    @Value("${action.domain}")
-    private String actionDomain;
+    @Value("${db.host}")
+    private String db_host;
+    @Value("${db.port}")
+    private String db_port;
+    @Value("${action.service.host}")
+    private String action_service_host;
+    @Value("${action.service.port}")
+    private String action_service_port;
 
     @Bean
-    public ActionSdkApi actionSdkApi() {
-        return new ActionSdkApi(actionDomain);
+    public ActionServiceSdkClient actionServiceSdkClient() {
+        return new ActionServiceSdkClientImpl(action_service_host, Integer.parseInt(action_service_port), 2);
     }
 
     @Bean
-    public DBServiceApiClient dbServiceApiClient() {
-        return new DBServiceApiClient();
+    public DBServiceSdkClient dbServiceSdkClient() {
+        return new DBServiceSdkClientImpl(db_host,Integer.parseInt(db_port), 1);
     }
 
     @Bean
-    public DataHelper dataHelper(DBServiceApiClient dbServiceApiClient) {
-        return new DataHelper(db_url, dbServiceApiClient);
+    public SdkService sdkService() {
+        return new SdkService();
     }
 
     @Bean
-    public CallActionApi callActionApi() {
-        return new CallActionApi();
+    public DataHelper dataHelper(DBServiceSdkClient dbServiceSdkClient) {
+        return new DataHelper(dbServiceSdkClient);
     }
 
     @Bean
@@ -110,5 +117,10 @@ public class DevelopmentConfig {
     @Bean
     public ReleaseHandler releaseHandler() {
         return new ReleaseHandler();
+    }
+
+    @Bean
+    public DevHandler devHandler() {
+        return new DevHandler();
     }
 }

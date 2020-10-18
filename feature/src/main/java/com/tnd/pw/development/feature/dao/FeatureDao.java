@@ -8,8 +8,9 @@ import java.io.IOException;
 import java.util.List;
 
 public interface FeatureDao {
-    void create(FeatureEntity entity) throws IOException, DBServiceException;
-    List<FeatureEntity> get(FeatureEntity entity) throws IOException, DBServiceException, FeatureNotFoundException;
-    void update(FeatureEntity entity) throws IOException, DBServiceException;
-    void remove(FeatureEntity entity) throws IOException, DBServiceException;
+    void create(FeatureEntity entity) throws DBServiceException;
+    List<FeatureEntity> get(FeatureEntity entity) throws DBServiceException, FeatureNotFoundException;
+    List<FeatureEntity> get(List<Long> releaseIds) throws DBServiceException, FeatureNotFoundException;
+    void update(FeatureEntity entity) throws DBServiceException;
+    void remove(FeatureEntity entity) throws DBServiceException;
 }

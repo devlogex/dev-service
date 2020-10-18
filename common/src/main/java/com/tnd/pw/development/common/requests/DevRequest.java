@@ -5,6 +5,8 @@ import com.tnd.common.api.common.base.authens.ProductTokenRequest;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.List;
+
 @Setter
 @Getter
 public class DevRequest extends ProductTokenRequest {
@@ -20,7 +22,7 @@ public class DevRequest extends ProductTokenRequest {
     @SerializedName("release_id")
     private Long releaseId;
     @SerializedName("goals")
-    private String goals;
+    private List<Long> goals;
     @SerializedName("days_to_release")
     private Integer daysToRelease;
     @SerializedName("release_date")

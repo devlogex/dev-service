@@ -10,13 +10,14 @@ import java.io.IOException;
 import java.util.List;
 
 public interface FeatureService {
-    FeatureEntity createFeature(FeatureEntity entity) throws IOException, DBServiceException;
-    List<FeatureEntity> getFeature(FeatureEntity entity) throws IOException, DBServiceException, FeatureNotFoundException;
-    void updateFeature(FeatureEntity entity) throws IOException, DBServiceException;
-    void removeFeature(FeatureEntity entity) throws IOException, DBServiceException;
+    FeatureEntity createFeature(FeatureEntity entity) throws DBServiceException;
+    List<FeatureEntity> getFeature(FeatureEntity entity) throws DBServiceException, FeatureNotFoundException;
+    List<FeatureEntity> getFeature(List<Long> releaseIds) throws DBServiceException, FeatureNotFoundException;
+    void updateFeature(FeatureEntity entity) throws DBServiceException;
+    void removeFeature(FeatureEntity entity) throws DBServiceException;
 
-    RequirementEntity createRequirement(RequirementEntity entity) throws IOException, DBServiceException;
-    List<RequirementEntity> getRequirement(RequirementEntity entity) throws IOException, DBServiceException, RequirementNotFoundException;
-    void updateRequirement(RequirementEntity entity) throws IOException, DBServiceException;
-    void removeRequirement(RequirementEntity entity) throws IOException, DBServiceException;
+    RequirementEntity createRequirement(RequirementEntity entity) throws DBServiceException;
+    List<RequirementEntity> getRequirement(RequirementEntity entity) throws DBServiceException, RequirementNotFoundException;
+    void updateRequirement(RequirementEntity entity) throws DBServiceException;
+    void removeRequirement(RequirementEntity entity) throws DBServiceException;
 }

@@ -20,11 +20,13 @@ public class FeatureDaoImpl implements FeatureDao {
                     "description, files, created_at, created_by) " +
                     "values(%d, %d, '%s',  %d, %d, %d, '%s', '%s', %d, %d)";
     private static final String SQL_SELECT_BY_ID =
-            "SELECT * FROM feature WHERE id = %d";
+            "SELECT * FROM feature WHERE id = %d ORDER BY created_at";
+    private static final String SQL_SELECT_BY_LIST_RELEASE_ID =
+            "SELECT * FROM feature WHERE release_id IN (%s) ORDER BY created_at";
     private static final String SQL_SELECT_BY_PRODUCT_ID =
-            "SELECT * FROM feature WHERE product_id = %d";
+            "SELECT * FROM feature WHERE product_id = %d ORDER BY created_at";
     private static final String SQL_SELECT_BY_RELEASE_ID =
-            "SELECT * FROM feature WHERE release_id = %d";
+            "SELECT * FROM feature WHERE release_id = %d ORDER BY created_at";
     private static final String SQL_UPDATE =
             "UPDATE feature SET name = '%s', state = %d, release_id = %d, initiative_id = %d, goals = '%s', " +
                     "assign_to = %d, epic_id = %d, requirements = '%s', description = '%s', files = '%s' " +
@@ -33,7 +35,7 @@ public class FeatureDaoImpl implements FeatureDao {
             "DELETE FROM feature WHERE id = %d";
 
     @Override
-    public void create(FeatureEntity entity) throws IOException, DBServiceException {
+    public void create(FeatureEntity entity) throws DBServiceException {
         String query = String.format(SQL_CREATE, entity.getId(), entity.getProductId(), entity.getName(),
                 entity.getType(), entity.getState(), entity.getReleaseId(), entity.getDescription(),
                 entity.getFiles(), entity.getCreatedAt(), entity.getCreatedBy());
@@ -41,7 +43,7 @@ public class FeatureDaoImpl implements FeatureDao {
     }
 
     @Override
-    public List<FeatureEntity> get(FeatureEntity entity) throws IOException, DBServiceException, FeatureNotFoundException {
+    public List<FeatureEntity> get(FeatureEntity entity) throws DBServiceException, FeatureNotFoundException {
         String query = "";
         if(entity.getId() != null) {
             query = String.format(SQL_SELECT_BY_ID, entity.getId());
@@ -60,7 +62,22 @@ public class FeatureDaoImpl implements FeatureDao {
     }
 
     @Override
-    public void update(FeatureEntity entity) throws IOException, DBServiceException {
+    public List<FeatureEntity> get(List<Long> releaseIds) throws DBServiceException, FeatureNotFoundException {
+        String listId = "";
+        for (int i=0;i<releaseIds.size() - 1; i++) {
+            listId += releaseIds.get(i) + ",";
+        }
+        listId += releaseIds.get(releaseIds.size()-1);
+        String query = String.format(SQL_SELECT_BY_LIST_RELEASE_ID, listId);
+        List<FeatureEntity> entities = dataHelper.querySQL(query, FeatureEntity.class);
+        if(CollectionUtils.isEmpty(entities)) {
+            throw new FeatureNotFoundException();
+        }
+        return entities;
+    }
+
+    @Override
+    public void update(FeatureEntity entity) throws DBServiceException {
         String query = String.format(SQL_UPDATE, entity.getName(), entity.getState(),entity.getReleaseId(),
                 entity.getInitiativeId(),entity.getGoals(), entity.getAssignTo(), entity.getEpicId(),
                 entity.getRequirements(), entity.getDescription(), entity.getFiles(), entity.getId());
@@ -68,7 +85,7 @@ public class FeatureDaoImpl implements FeatureDao {
     }
 
     @Override
-    public void remove(FeatureEntity entity) throws IOException, DBServiceException {
+    public void remove(FeatureEntity entity) throws DBServiceException {
         String query = String.format(SQL_DELETE, entity.getId());
         dataHelper.executeSQL(query);
     }

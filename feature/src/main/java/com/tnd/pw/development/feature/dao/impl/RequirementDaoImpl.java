@@ -10,7 +10,6 @@ import com.tnd.pw.development.feature.exception.RequirementNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
-import java.io.IOException;
 import java.util.List;
 
 public class RequirementDaoImpl implements RequirementDao {
@@ -21,9 +20,9 @@ public class RequirementDaoImpl implements RequirementDao {
             "INSERT INTO requirement(id, feature_id, name, state, description, files, created_at, created_by) " +
                     "values(%d, %d, '%s', %d, '%s','%s', %d, %d)";
     private static final String SQL_SELECT_BY_ID =
-            "SELECT * FROM requirement WHERE id = %d";
+            "SELECT * FROM requirement WHERE id = %d ORDER BY created_at";
     private static final String SQL_SELECT_BY_FEATURE_ID =
-            "SELECT * FROM requirement WHERE feature_id = %d";
+            "SELECT * FROM requirement WHERE feature_id = %d ORDER BY created_at";
     private static final String SQL_UPDATE =
             "UPDATE requirement SET name = '%s', state = %d, assign_to = %d, description = '%s', files = '%s' " +
                     "WHERE id = %d";
@@ -34,7 +33,7 @@ public class RequirementDaoImpl implements RequirementDao {
 
 
     @Override
-    public void create(RequirementEntity entity) throws IOException, DBServiceException {
+    public void create(RequirementEntity entity) throws DBServiceException {
         String query = String.format(SQL_CREATE, entity.getId(), entity.getFeatureId(), entity.getName(),
                 entity.getState(), entity.getDescription(),entity.getFiles(), entity.getCreatedAt(),
                 entity.getCreatedBy());
@@ -42,7 +41,7 @@ public class RequirementDaoImpl implements RequirementDao {
     }
 
     @Override
-    public List<RequirementEntity> get(RequirementEntity entity) throws IOException, DBServiceException, RequirementNotFoundException {
+    public List<RequirementEntity> get(RequirementEntity entity) throws DBServiceException, RequirementNotFoundException {
         String query = "";
         if(entity.getId() != null) {
             query = String.format(SQL_SELECT_BY_ID, entity.getId());
@@ -58,14 +57,14 @@ public class RequirementDaoImpl implements RequirementDao {
     }
 
     @Override
-    public void update(RequirementEntity entity) throws IOException, DBServiceException {
+    public void update(RequirementEntity entity) throws DBServiceException {
         String query = String.format(SQL_UPDATE, entity.getName(), entity.getState(), entity.getAssignTo(),
                 entity.getDescription(), entity.getFiles(), entity.getId());
         dataHelper.executeSQL(query);
     }
 
     @Override
-    public void remove(RequirementEntity entity) throws IOException, DBServiceException {
+    public void remove(RequirementEntity entity) throws DBServiceException {
         String query = "";
         if(entity.getId() != null) {
             query = String.format(SQL_DELETE_BY_ID, entity.getId());

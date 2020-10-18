@@ -12,18 +12,18 @@ import java.io.IOException;
 import java.util.List;
 
 public interface ReleaseService {
-    ReleaseEntity createRelease(ReleaseEntity entity) throws IOException, DBServiceException;
-    List<ReleaseEntity> getRelease(ReleaseEntity entity) throws IOException, DBServiceException, ReleaseNotFoundException;
-    void updateRelease(ReleaseEntity entity) throws IOException, DBServiceException;
-    void removeRelease(ReleaseEntity entity) throws IOException, DBServiceException;
+    ReleaseEntity createRelease(ReleaseEntity entity) throws DBServiceException;
+    List<ReleaseEntity> getRelease(ReleaseEntity entity) throws DBServiceException, ReleaseNotFoundException;
+    void updateRelease(ReleaseEntity entity) throws DBServiceException;
+    void removeRelease(ReleaseEntity entity) throws DBServiceException;
 
-    ReleasePhaseEntity createReleasePhase(ReleasePhaseEntity entity) throws IOException, DBServiceException;
-    List<ReleasePhaseEntity> getReleasePhase(ReleasePhaseEntity entity) throws IOException, DBServiceException, ReleasePhaseNotFoundException;
-    void updateReleasePhase(ReleasePhaseEntity entity) throws IOException, DBServiceException;
-    void removeReleasePhase(ReleasePhaseEntity entity) throws IOException, DBServiceException;
+    ReleasePhaseEntity createReleasePhase(ReleasePhaseEntity entity) throws DBServiceException;
+    List<ReleasePhaseEntity> getReleasePhase(ReleasePhaseEntity entity) throws DBServiceException, ReleasePhaseNotFoundException;
+    void updateReleasePhase(ReleasePhaseEntity entity) throws DBServiceException;
+    void removeReleasePhase(ReleasePhaseEntity entity) throws DBServiceException;
 
-    EpicEntity createEpic(EpicEntity entity) throws IOException, DBServiceException;
-    List<EpicEntity> getEpic(EpicEntity entity) throws IOException, DBServiceException, EpicNotFoundException;
-    void updateEpic(EpicEntity entity) throws IOException, DBServiceException;
-    void removeEpic(EpicEntity entity) throws IOException, DBServiceException;
+    EpicEntity createEpic(EpicEntity entity) throws DBServiceException;
+    List<EpicEntity> getEpic(EpicEntity entity) throws DBServiceException, EpicNotFoundException;
+    void updateEpic(EpicEntity entity) throws DBServiceException;
+    void removeEpic(EpicEntity entity) throws DBServiceException;
 }

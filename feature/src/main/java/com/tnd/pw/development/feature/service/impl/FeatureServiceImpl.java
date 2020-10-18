@@ -23,7 +23,7 @@ public class FeatureServiceImpl implements FeatureService {
     private RequirementDao requirementDao;
 
     @Override
-    public FeatureEntity createFeature(FeatureEntity entity) throws IOException, DBServiceException {
+    public FeatureEntity createFeature(FeatureEntity entity) throws DBServiceException {
         entity.setId(GenUID.genIdByProduct(entity.getProductId()));
         entity.setCreatedAt(System.currentTimeMillis());
         entity.setState(FeatureState.UNDER_CONSIDERATION.ordinal());
@@ -34,22 +34,27 @@ public class FeatureServiceImpl implements FeatureService {
     }
 
     @Override
-    public List<FeatureEntity> getFeature(FeatureEntity entity) throws IOException, DBServiceException, FeatureNotFoundException {
+    public List<FeatureEntity> getFeature(FeatureEntity entity) throws DBServiceException, FeatureNotFoundException {
         return featureDao.get(entity);
     }
 
     @Override
-    public void updateFeature(FeatureEntity entity) throws IOException, DBServiceException {
+    public List<FeatureEntity> getFeature(List<Long> releaseIds) throws DBServiceException, FeatureNotFoundException {
+        return featureDao.get(releaseIds);
+    }
+
+    @Override
+    public void updateFeature(FeatureEntity entity) throws DBServiceException {
         featureDao.update(entity);
     }
 
     @Override
-    public void removeFeature(FeatureEntity entity) throws IOException, DBServiceException {
+    public void removeFeature(FeatureEntity entity) throws DBServiceException {
         featureDao.remove(entity);
     }
 
     @Override
-    public RequirementEntity createRequirement(RequirementEntity entity) throws IOException, DBServiceException {
+    public RequirementEntity createRequirement(RequirementEntity entity) throws DBServiceException {
         entity.setId(GenUID.genIdByParent(entity.getFeatureId()));
         entity.setCreatedAt(System.currentTimeMillis());
         entity.setState(RequirementState.UNDER_CONSIDERATION.ordinal());
@@ -58,17 +63,17 @@ public class FeatureServiceImpl implements FeatureService {
     }
 
     @Override
-    public List<RequirementEntity> getRequirement(RequirementEntity entity) throws IOException, DBServiceException, RequirementNotFoundException {
+    public List<RequirementEntity> getRequirement(RequirementEntity entity) throws DBServiceException, RequirementNotFoundException {
         return requirementDao.get(entity);
     }
 
     @Override
-    public void updateRequirement(RequirementEntity entity) throws IOException, DBServiceException {
+    public void updateRequirement(RequirementEntity entity) throws DBServiceException {
         requirementDao.update(entity);
     }
 
     @Override
-    public void removeRequirement(RequirementEntity entity) throws IOException, DBServiceException {
+    public void removeRequirement(RequirementEntity entity) throws DBServiceException {
         requirementDao.remove(entity);
     }
 }

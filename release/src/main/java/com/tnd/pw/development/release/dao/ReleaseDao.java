@@ -8,8 +8,8 @@ import java.io.IOException;
 import java.util.List;
 
 public interface ReleaseDao {
-    void create(ReleaseEntity entity) throws IOException, DBServiceException;
-    List<ReleaseEntity> get(ReleaseEntity entity) throws IOException, DBServiceException, ReleaseNotFoundException;
-    void update(ReleaseEntity entity) throws IOException, DBServiceException;
-    void remove(ReleaseEntity entity) throws IOException, DBServiceException;
+    void create(ReleaseEntity entity) throws DBServiceException;
+    List<ReleaseEntity> get(ReleaseEntity entity) throws DBServiceException, ReleaseNotFoundException;
+    void update(ReleaseEntity entity) throws DBServiceException;
+    void remove(ReleaseEntity entity) throws DBServiceException;
 }
