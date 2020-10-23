@@ -22,9 +22,9 @@ public class ReleasePhaseDaoImpl implements ReleasePhaseDao {
             "INSERT INTO release_phase(id, release_id, name, type, color, date) " +
                     "values(%d, %d, '%s', %d, '%s', '%s')";
     private static final String SQL_SELECT_BY_ID =
-            "SELECT * FROM release_phase WHERE id = %d ORDER BY created_at";
+            "SELECT * FROM release_phase WHERE id = %d";
     private static final String SQL_SELECT_BY_RELEASE_ID =
-            "SELECT * FROM release_phase WHERE release_id = %d ORDER BY created_at";
+            "SELECT * FROM release_phase WHERE release_id = %d";
     private static final String SQL_UPDATE =
             "UPDATE release_phase SET name = '%s', type = %d, date = '%S', color = '%s', description = '%s', " +
                     "files = '%s' WHERE id = %d";

@@ -49,4 +49,6 @@ public class FeatureRep  implements Serializable {
     @SerializedName("list_comment")
     private List<CommentRepresentation> commentReps;
 
+    @SerializedName("list_requirement")
+    private List<RequirementRep> requirementReps;
 }

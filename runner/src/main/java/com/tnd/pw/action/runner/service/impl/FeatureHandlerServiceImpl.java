@@ -111,7 +111,16 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
                         .build()
         ).get(0);
         CsActionRepresentation actionRep = sdkService.getTodoComment(featureEntity.getId());
-        return RepresentationBuilder.buildFeatureRep(featureEntity, actionRep);
+        List<RequirementEntity> requirements = null;
+        try {
+            requirements = featureService.getRequirement(
+                    RequirementEntity.builder()
+                            .featureId(featureEntity.getId())
+                            .build()
+            );
+        } catch (RequirementNotFoundException e) {
+        }
+        return RepresentationBuilder.buildFeatureRep(featureEntity, actionRep, requirements);
     }
 
     @Override

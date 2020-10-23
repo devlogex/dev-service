@@ -42,7 +42,7 @@ public class RepresentationBuilder {
     private static List<FeatureRep> buildListFeatureRep(List<FeatureEntity> featureEntities) {
         List<FeatureRep> featureReps = new ArrayList<>();
         for(FeatureEntity featureEntity: featureEntities) {
-            featureReps.add(buildFeatureRep(featureEntity, null));
+            featureReps.add(buildFeatureRep(featureEntity, null,null));
         }
         return featureReps;
     }
@@ -158,7 +158,7 @@ public class RepresentationBuilder {
                 List<FeatureRep> featureRepList = new ArrayList<>();
                 if(featureEntities != null) {
                     featureRepList = featureEntities.stream().filter(feature -> feature.getReleaseId().compareTo(releaseEntity.getId()) == 0)
-                            .map(feature -> buildFeatureRep(feature, null)).collect(Collectors.toList());
+                            .map(feature -> buildFeatureRep(feature, null, null)).collect(Collectors.toList());
                 }
                 featureReps.put(GsonUtils.convertToString(releaseRep), featureRepList);
             }
@@ -168,7 +168,7 @@ public class RepresentationBuilder {
         return representation;
     }
 
-    public static FeatureRep buildFeatureRep(FeatureEntity feature, CsActionRepresentation actionRep) {
+    public static FeatureRep buildFeatureRep(FeatureEntity feature, CsActionRepresentation actionRep, List<RequirementEntity> requirementEntities) {
         FeatureRep featureRep = new FeatureRep();
 
         featureRep.setId(feature.getId());
@@ -191,6 +191,9 @@ public class RepresentationBuilder {
             featureRep.setRequirements(feature.getRequirements());
             featureRep.setCreatedAt(feature.getCreatedAt());
             featureRep.setCreatedBy(feature.getCreatedBy());
+        }
+        if(requirementEntities != null) {
+            featureRep.setRequirementReps(buildListRequirement(requirementEntities).getRequirementReps());
         }
         return featureRep;
     }
