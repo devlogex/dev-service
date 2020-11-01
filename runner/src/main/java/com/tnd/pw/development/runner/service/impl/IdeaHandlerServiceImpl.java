@@ -6,6 +6,7 @@ import com.tnd.pw.action.common.representations.CsActionRepresentation;
 import com.tnd.pw.development.common.representations.CsDevRepresentation;
 import com.tnd.pw.development.common.representations.IdeaRep;
 import com.tnd.pw.development.common.requests.DevRequest;
+import com.tnd.pw.development.common.requests.WorkspaceRequest;
 import com.tnd.pw.development.common.utils.GsonUtils;
 import com.tnd.pw.development.common.utils.RepresentationBuilder;
 import com.tnd.pw.development.idea.constants.IdeaState;
@@ -13,7 +14,6 @@ import com.tnd.pw.development.idea.entity.IdeaEntity;
 import com.tnd.pw.development.idea.exception.IdeaNotFoundException;
 import com.tnd.pw.development.idea.service.IdeaService;
 import com.tnd.pw.development.runner.exception.ActionServiceFailedException;
-import com.tnd.pw.development.runner.handler.IdeaHandler;
 import com.tnd.pw.development.runner.service.IdeaHandlerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,16 +31,20 @@ public class IdeaHandlerServiceImpl implements IdeaHandlerService {
 
     @Override
     public CsDevRepresentation addIdea(DevRequest request) throws DBServiceException {
+        HashSet<Long> set = new HashSet<>();
+        set.add(request.getPayload().getUserId());
+
         ideaService.create(
                 IdeaEntity.builder()
                         .name(request.getName())
                         .productId(request.getId())
                         .workspaceId(request.getPayload().getWorkspaceId())
                         .content(request.getContent())
-                        .vote(GsonUtils.convertToString(new HashSet<Long>()))
+                        .createdBy(request.getPayload().getUserId())
+                        .vote(GsonUtils.convertToString(set))
                         .build()
         );
-        return getIdeas(request);
+        return getIdeas(request.getPayload().getUserId(), request.getPayload().getWorkspaceId());
     }
 
     @Override
@@ -62,12 +66,12 @@ public class IdeaHandlerServiceImpl implements IdeaHandlerService {
         }
         ideaService.update(ideaEntity);
         
-        return getIdeas(request);
+        return getIdeas(request.getPayload().getUserId(), request.getPayload().getWorkspaceId());
     }
 
     @Override
-    public CsDevRepresentation getIdea(DevRequest request) throws DBServiceException {
-        return getIdeas(request);
+    public CsDevRepresentation getIdea(WorkspaceRequest request) throws DBServiceException {
+        return getIdeas(request.getPayload().getUserId(), request.getPayload().getWorkspaceId());
     }
 
     @Override
@@ -102,12 +106,12 @@ public class IdeaHandlerServiceImpl implements IdeaHandlerService {
         return RepresentationBuilder.buildIdeaRep(ideaEntity, request.getPayload().getUserId(), actionRep);
     }
 
-    private CsDevRepresentation getIdeas(DevRequest request) throws DBServiceException {
+    private CsDevRepresentation getIdeas(Long userId, Long workspaceId) throws DBServiceException {
         List<IdeaEntity> ideaEntities = null;
         try {
-            ideaEntities = ideaService.get(IdeaEntity.builder().workspaceId(request.getPayload().getWorkspaceId()).build());
+            ideaEntities = ideaService.get(IdeaEntity.builder().workspaceId(workspaceId).build());
         } catch (IdeaNotFoundException e) {
         }
-        return RepresentationBuilder.buildListIdeaRep(ideaEntities, request.getPayload().getUserId());
+        return RepresentationBuilder.buildListIdeaRep(ideaEntities, userId);
     }
 }

@@ -4,6 +4,7 @@ import com.tnd.dbservice.common.exception.DBServiceException;
 import com.tnd.pw.development.common.representations.CsDevRepresentation;
 import com.tnd.pw.development.common.representations.IdeaRep;
 import com.tnd.pw.development.common.requests.DevRequest;
+import com.tnd.pw.development.common.requests.WorkspaceRequest;
 import com.tnd.pw.development.idea.exception.IdeaNotFoundException;
 import com.tnd.pw.development.runner.exception.ActionServiceFailedException;
 
@@ -12,7 +13,7 @@ public interface IdeaHandlerService {
 
     CsDevRepresentation updateIdea(DevRequest request) throws DBServiceException, IdeaNotFoundException;
 
-    CsDevRepresentation getIdea(DevRequest request) throws DBServiceException;
+    CsDevRepresentation getIdea(WorkspaceRequest request) throws DBServiceException;
 
     IdeaRep getIdeaInfo(DevRequest request) throws DBServiceException, IdeaNotFoundException, ActionServiceFailedException;
 

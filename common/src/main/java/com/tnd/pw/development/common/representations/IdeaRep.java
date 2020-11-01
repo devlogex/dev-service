@@ -26,7 +26,7 @@ public class IdeaRep implements Serializable {
     private String content;
     @SerializedName("vote_number")
     private Integer voteNumber;
-    @SerializedName("vote_state")
+    @SerializedName("voted")
     private boolean voteState;
     @SerializedName("created_at")
     private Long createdAt;

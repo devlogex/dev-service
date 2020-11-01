@@ -8,6 +8,7 @@ import com.tnd.dbservice.common.exception.DBServiceException;
 import com.tnd.pw.development.common.representations.CsDevRepresentation;
 import com.tnd.pw.development.common.representations.IdeaRep;
 import com.tnd.pw.development.common.requests.DevRequest;
+import com.tnd.pw.development.common.requests.WorkspaceRequest;
 import com.tnd.pw.development.common.utils.GsonUtils;
 import com.tnd.pw.development.idea.exception.IdeaNotFoundException;
 import com.tnd.pw.development.runner.exception.ActionServiceFailedException;
@@ -40,7 +41,7 @@ public class IdeaHandler implements BaseHandler {
     }
 
     @HandlerService(path = "/development/idea", protocol = "GET")
-    public BaseResponse<CsDevRepresentation> getIdea(DevRequest request) throws DBServiceException {
+    public BaseResponse<CsDevRepresentation> getIdea(WorkspaceRequest request) throws DBServiceException {
         LOGGER.info("[IdeaHandler] getIdea() - request: {}", GsonUtils.convertToString(request));
         CsDevRepresentation response = ideaHandlerService.getIdea(request);
         LOGGER.info("[IdeaHandler] getIdea() - response: {}", GsonUtils.convertToString(response));
