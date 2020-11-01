@@ -1,10 +1,12 @@
-package com.tnd.pw.action.runner.service.impl;
+package com.tnd.pw.development.runner.service.impl;
 
+import com.google.common.reflect.TypeToken;
 import com.tnd.common.api.common.Utils.GenUID;
 import com.tnd.dbservice.common.exception.DBServiceException;
 import com.tnd.pw.action.common.representations.CsActionRepresentation;
-import com.tnd.pw.action.runner.exception.ActionServiceFailedException;
-import com.tnd.pw.action.runner.service.FeatureHandlerService;
+import com.tnd.pw.development.runner.exception.ActionServiceFailedException;
+import com.tnd.pw.development.runner.exception.InvalidDataException;
+import com.tnd.pw.development.runner.service.FeatureHandlerService;
 import com.tnd.pw.development.common.representations.CsDevRepresentation;
 import com.tnd.pw.development.common.representations.FeatureRep;
 import com.tnd.pw.development.common.representations.RequirementRep;
@@ -20,13 +22,17 @@ import com.tnd.pw.development.feature.exception.FeatureNotFoundException;
 import com.tnd.pw.development.feature.exception.RequirementNotFoundException;
 import com.tnd.pw.development.feature.service.FeatureService;
 import com.tnd.pw.development.release.entity.ReleaseEntity;
+import com.tnd.pw.development.release.entity.ReleaseLayoutEntity;
+import com.tnd.pw.development.release.exception.ReleaseLayoutNotFoundException;
 import com.tnd.pw.development.release.exception.ReleaseNotFoundException;
 import com.tnd.pw.development.release.service.ReleaseService;
+import com.tnd.pw.report.common.constants.ReportAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 public class FeatureHandlerServiceImpl implements FeatureHandlerService {
@@ -40,33 +46,58 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
     private ReleaseService releaseService;
 
     @Override
-    public CsDevRepresentation addFeature(DevRequest request) throws DBServiceException, ReleaseNotFoundException, FeatureNotFoundException {
+    public CsDevRepresentation addFeature(DevRequest request) throws DBServiceException {
         Long productId = GenUID.getProductId(request.getId());
-        featureService.createFeature(
+        FeatureEntity feature = featureService.createFeature(
                 FeatureEntity.builder()
                         .name(request.getName())
                         .releaseId(request.getId())
                         .productId(productId)
                         .type(FeatureType.valueOf(request.getType()).ordinal())
+                        .startOn(request.getStartOn())
+                        .endOn(request.getEndOn())
                         .description(request.getDescription())
                         .files(request.getFiles())
                         .createdBy(request.getPayload().getUserId())
                         .build()
         );
 
+        List<Long> layout = null;
+        try {
+            ReleaseLayoutEntity releaseLayoutEntity = releaseService.getReleaseLayout(
+                    ReleaseLayoutEntity.builder()
+                            .releaseId(feature.getReleaseId())
+                            .build()
+            ).get(0);
+            layout = GsonUtils.getGson().fromJson(releaseLayoutEntity.getLayout(), new TypeToken<ArrayList<Long>>(){}.getType());
+            layout.add(feature.getId());
+            releaseLayoutEntity.setLayout(GsonUtils.convertToString(layout));
+            releaseService.updateReleaseLayout(releaseLayoutEntity);
+        } catch (ReleaseLayoutNotFoundException e) {
+            layout = new ArrayList<>();
+            layout.add(feature.getId());
+            releaseService.createReleaseLayout(
+                    ReleaseLayoutEntity.builder()
+                            .releaseId(feature.getReleaseId())
+                            .layout(GsonUtils.convertToString(layout))
+                            .build()
+            );
+        }
+
+        sdkService.createHistory(request.getPayload().getUserId(), feature.getId(), ReportAction.CREATED, GsonUtils.convertToString(feature));
+
         return getFeatures(productId);
     }
 
     @Override
-    public CsDevRepresentation updateFeature(DevRequest request) throws DBServiceException, FeatureNotFoundException {
+    public CsDevRepresentation updateFeature(DevRequest request) throws DBServiceException, FeatureNotFoundException, ReleaseLayoutNotFoundException {
         FeatureEntity featureEntity = featureService.getFeature(
                 FeatureEntity.builder()
                         .id(request.getId())
                         .build()
         ).get(0);
-        if(request.getReleaseId() != null) {
-            featureEntity.setReleaseId(request.getReleaseId());
-        }
+        String oldRelease = GsonUtils.convertToString(featureEntity);
+
         if(request.getName() != null) {
             featureEntity.setName(request.getName());
         }
@@ -94,8 +125,108 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
         if(request.getFiles() != null) {
             featureEntity.setFiles(request.getFiles());
         }
+        if(request.getStartOn() != null) {
+            featureEntity.setStartOn(request.getStartOn());
+        }
+        if(request.getEndOn() != null) {
+            featureEntity.setEndOn(request.getEndOn());
+        }
+
+        if(request.getReleaseId() != null) {
+            ReleaseLayoutEntity oldLayoutEntity = releaseService.getReleaseLayout(
+                    ReleaseLayoutEntity.builder()
+                            .releaseId(featureEntity.getReleaseId()).build()
+            ).get(0);
+            ReleaseLayoutEntity newLayoutEntity = releaseService.getReleaseLayout(
+                    ReleaseLayoutEntity.builder()
+                            .releaseId(request.getReleaseId()).build()
+            ).get(0);
+
+            List<Long> oldLayout = GsonUtils.getGson().fromJson(oldLayoutEntity.getLayout(), new TypeToken<ArrayList<Long>>(){}.getType());
+            List<Long> newLayout = GsonUtils.getGson().fromJson(newLayoutEntity.getLayout(), new TypeToken<ArrayList<Long>>(){}.getType());
+            oldLayout.remove(featureEntity.getId());
+            newLayout.add(featureEntity.getId());
+            oldLayoutEntity.setLayout(GsonUtils.convertToString(oldLayout));
+            newLayoutEntity.setLayout(GsonUtils.convertToString(newLayout));
+            releaseService.updateReleaseLayout(oldLayoutEntity);
+            releaseService.updateReleaseLayout(newLayoutEntity);
+
+            featureEntity.setReleaseId(request.getReleaseId());
+        }
+
+        featureService.updateFeature(featureEntity);
+
+        sdkService.createHistory(request.getPayload().getUserId(), featureEntity.getId(), ReportAction.UPDATED, oldRelease + "|" + GsonUtils.convertToString(featureEntity));
+
+        return getFeatures(featureEntity.getProductId());
+    }
+
+    @Override
+    public CsDevRepresentation updateFeatureLayout(DevRequest request) throws DBServiceException, ReleaseLayoutNotFoundException, InvalidDataException {
+        ReleaseLayoutEntity releaseLayoutEntity = releaseService.getReleaseLayout(
+                ReleaseLayoutEntity.builder()
+                        .releaseId(request.getId())
+                        .build()
+        ).get(0);
+        List<Long> layout = GsonUtils.getGson().fromJson(releaseLayoutEntity.getLayout(), new TypeToken<ArrayList<Long>>(){}.getType());
+        
+        checkInputData(request.getLayout(), layout);
+
+        releaseLayoutEntity.setLayout(GsonUtils.convertToString(request.getLayout()));
+        releaseService.updateReleaseLayout(releaseLayoutEntity);
+        return getFeatures(releaseLayoutEntity.getProductId());
+    }
+
+    @Override
+    public CsDevRepresentation updateFeatureRelease(DevRequest request) throws DBServiceException, FeatureNotFoundException, InvalidDataException, ReleaseLayoutNotFoundException {
+        FeatureEntity featureEntity = featureService.getFeature(
+                FeatureEntity.builder()
+                        .id(request.getId())
+                        .build()
+        ).get(0);
+        ReleaseLayoutEntity oldLayoutEntityFeature = releaseService.getReleaseLayout(
+                ReleaseLayoutEntity.builder()
+                        .releaseId(featureEntity.getReleaseId())
+                        .build()
+        ).get(0);
+        ReleaseLayoutEntity oldLayoutEntity = releaseService.getReleaseLayout(
+                ReleaseLayoutEntity.builder()
+                        .releaseId(request.getReleaseId())
+                        .build()
+        ).get(0);
+        List<Long> oldLayoutFeature = GsonUtils.getGson().fromJson(oldLayoutEntityFeature.getLayout(), new TypeToken<ArrayList<Long>>(){}.getType());
+        List<Long> oldLayout = GsonUtils.getGson().fromJson(oldLayoutEntity.getLayout(), new TypeToken<ArrayList<Long>>(){}.getType());
+        List<Long> newLayout = request.getLayout();
+        checkInputData(oldLayout, newLayout, featureEntity.getId());
+
+        oldLayoutFeature.remove(featureEntity.getId());
+        oldLayoutEntityFeature.setLayout(GsonUtils.convertToString(oldLayoutFeature));
+        oldLayoutEntity.setLayout(GsonUtils.convertToString(newLayout));
+
+        releaseService.updateReleaseLayout(oldLayoutEntity);
+        releaseService.updateReleaseLayout(oldLayoutEntityFeature);
+        featureEntity.setReleaseId(request.getReleaseId());
         featureService.updateFeature(featureEntity);
         return getFeatures(featureEntity.getProductId());
+    }
+
+    private void checkInputData(List<Long> oldLayout, List<Long> newLayout, Long id) throws InvalidDataException {
+        HashSet<Long> set = new HashSet<>();
+        oldLayout.add(id);
+        set.addAll(oldLayout);
+        set.addAll(newLayout);
+        if(set.size() != oldLayout.size() || set.size() != newLayout.size()) {
+            throw new InvalidDataException("Layout Input Error !");
+        }
+    }
+
+    private void checkInputData(List<Long> layout1, List<Long> layout2) throws InvalidDataException {
+        HashSet<Long> set = new HashSet<>();
+        set.addAll(layout1);
+        set.addAll(layout2);
+        if(set.size() != layout1.size() || set.size() != layout2.size()) {
+            throw new InvalidDataException("Layout Input Error !");
+        }
     }
 
     @Override
@@ -120,6 +251,7 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
             );
         } catch (RequirementNotFoundException e) {
         }
+        sdkService.createWatcher(request.getPayload().getUserId(), featureEntity.getId());
         return RepresentationBuilder.buildFeatureRep(featureEntity, actionRep, requirements);
     }
 
@@ -216,6 +348,7 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
     private CsDevRepresentation getFeatures(Long productId) throws DBServiceException {
         List<ReleaseEntity> releaseEntities = null;
         List<FeatureEntity> featureEntities = null;
+        List<ReleaseLayoutEntity> releaseLayouts = null;
         try {
             releaseEntities = releaseService.getRelease(
                     ReleaseEntity.builder()
@@ -227,8 +360,14 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
                             .productId(productId)
                             .build()
             );
-        }catch (ReleaseNotFoundException | FeatureNotFoundException e) {
+            releaseLayouts = releaseService.getReleaseLayout(
+                    ReleaseLayoutEntity.builder()
+                            .productId(productId)
+                            .build()
+            );
+
+        }catch (ReleaseNotFoundException | FeatureNotFoundException | ReleaseLayoutNotFoundException e) {
         }
-        return RepresentationBuilder.buildListFeatureRep(featureEntities, releaseEntities);
+        return RepresentationBuilder.buildListFeatureRep(featureEntities, releaseEntities, releaseLayouts);
     }
 }

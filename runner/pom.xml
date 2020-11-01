@@ -50,7 +50,14 @@
             <groupId>com.tnd.pw.development</groupId>
             <artifactId>feature</artifactId>
         </dependency>
-
+        <dependency>
+            <groupId>com.tnd.pw.report</groupId>
+            <artifactId>sdk</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.tnd.pw.development</groupId>
+            <artifactId>idea</artifactId>
+        </dependency>
     </dependencies>
 
     <build>
@@ -69,7 +76,7 @@
                     <archive>
                         <manifest>
                             <addClasspath>true</addClasspath>
-                            <mainClass>com.tnd.pw.action.runner.DevelopmentRunner</mainClass>
+                            <mainClass>com.tnd.pw.development.runner.DevelopmentRunner</mainClass>
                         </manifest>
                     </archive>
                     <descriptorRefs>

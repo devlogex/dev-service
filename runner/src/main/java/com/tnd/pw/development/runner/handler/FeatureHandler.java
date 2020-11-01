@@ -1,12 +1,13 @@
-package com.tnd.pw.action.runner.handler;
+package com.tnd.pw.development.runner.handler;
 
 import com.tnd.common.api.common.base.BaseResponse;
 import com.tnd.common.api.server.BaseHandler;
 import com.tnd.common.api.server.service.annotation.HandlerService;
 import com.tnd.common.api.server.service.annotation.HandlerServiceClass;
 import com.tnd.dbservice.common.exception.DBServiceException;
-import com.tnd.pw.action.runner.exception.ActionServiceFailedException;
-import com.tnd.pw.action.runner.service.FeatureHandlerService;
+import com.tnd.pw.development.runner.exception.ActionServiceFailedException;
+import com.tnd.pw.development.runner.exception.InvalidDataException;
+import com.tnd.pw.development.runner.service.FeatureHandlerService;
 import com.tnd.pw.development.common.representations.CsDevRepresentation;
 import com.tnd.pw.development.common.representations.FeatureRep;
 import com.tnd.pw.development.common.representations.RequirementRep;
@@ -14,6 +15,7 @@ import com.tnd.pw.development.common.requests.DevRequest;
 import com.tnd.pw.development.common.utils.GsonUtils;
 import com.tnd.pw.development.feature.exception.FeatureNotFoundException;
 import com.tnd.pw.development.feature.exception.RequirementNotFoundException;
+import com.tnd.pw.development.release.exception.ReleaseLayoutNotFoundException;
 import com.tnd.pw.development.release.exception.ReleaseNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -36,10 +38,26 @@ public class FeatureHandler implements BaseHandler {
     }
 
     @HandlerService(path = "/development/feature/update", protocol = "POST")
-    public BaseResponse<CsDevRepresentation> updateFeature(DevRequest request) throws FeatureNotFoundException, DBServiceException {
+    public BaseResponse<CsDevRepresentation> updateFeature(DevRequest request) throws FeatureNotFoundException, DBServiceException, ReleaseLayoutNotFoundException {
         LOGGER.info("[FeatureHandler] updateFeature() - request: {}", GsonUtils.convertToString(request));
         CsDevRepresentation response = featureHandlerService.updateFeature(request);
         LOGGER.info("[FeatureHandler] updateFeature() - response: {}", GsonUtils.convertToString(response));
+        return new BaseResponse<>(response);
+    }
+
+    @HandlerService(path = "/development/feature/layout/update", protocol = "POST")
+    public BaseResponse<CsDevRepresentation> updateFeatureLayout(DevRequest request) throws FeatureNotFoundException, DBServiceException, ReleaseLayoutNotFoundException, InvalidDataException {
+        LOGGER.info("[FeatureHandler] updateFeatureLayout() - request: {}", GsonUtils.convertToString(request));
+        CsDevRepresentation response = featureHandlerService.updateFeatureLayout(request);
+        LOGGER.info("[FeatureHandler] updateFeatureLayout() - response: {}", GsonUtils.convertToString(response));
+        return new BaseResponse<>(response);
+    }
+
+    @HandlerService(path = "/development/feature/release/update", protocol = "POST")
+    public BaseResponse<CsDevRepresentation> updateFeatureRelease(DevRequest request) throws FeatureNotFoundException, InvalidDataException, ReleaseLayoutNotFoundException, DBServiceException {
+        LOGGER.info("[FeatureHandler] updateFeatureRelease() - request: {}", GsonUtils.convertToString(request));
+        CsDevRepresentation response = featureHandlerService.updateFeatureRelease(request);
+        LOGGER.info("[FeatureHandler] updateFeatureRelease() - response: {}", GsonUtils.convertToString(response));
         return new BaseResponse<>(response);
     }
 

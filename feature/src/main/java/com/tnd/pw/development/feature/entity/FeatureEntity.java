@@ -33,6 +33,10 @@ public class FeatureEntity implements Serializable {
     private String goals;
     @SerializedName("epic_id")
     private Long epicId;
+    @SerializedName("start_on")
+    private Long startOn;
+    @SerializedName("end_on")
+    private Long endOn;
     @SerializedName("requirements")
     private String requirements;
     @SerializedName("description")

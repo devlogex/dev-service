@@ -1,7 +1,7 @@
-package com.tnd.pw.action.runner.service;
+package com.tnd.pw.development.runner.service;
 
 import com.tnd.dbservice.common.exception.DBServiceException;
-import com.tnd.pw.action.runner.exception.ActionServiceFailedException;
+import com.tnd.pw.development.runner.exception.ActionServiceFailedException;
 import com.tnd.pw.development.common.representations.CsDevRepresentation;
 import com.tnd.pw.development.common.representations.EpicRep;
 import com.tnd.pw.development.common.representations.ReleasePhaseRep;

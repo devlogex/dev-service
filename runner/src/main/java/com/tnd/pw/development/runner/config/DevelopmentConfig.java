@@ -1,15 +1,22 @@
-package com.tnd.pw.action.runner.config;
+package com.tnd.pw.development.runner.config;
 
 import com.tnd.dbservice.sdk.api.DBServiceSdkClient;
 import com.tnd.dbservice.sdk.api.impl.DBServiceSdkClientImpl;
-import com.tnd.pw.action.runner.handler.DevHandler;
-import com.tnd.pw.action.runner.handler.FeatureHandler;
-import com.tnd.pw.action.runner.handler.ReleaseHandler;
-import com.tnd.pw.action.runner.service.FeatureHandlerService;
-import com.tnd.pw.action.runner.service.ReleaseHandlerService;
-import com.tnd.pw.action.runner.service.impl.FeatureHandlerServiceImpl;
-import com.tnd.pw.action.runner.service.impl.ReleaseHandlerServiceImpl;
-import com.tnd.pw.action.runner.service.impl.SdkService;
+import com.tnd.pw.development.idea.dao.IdeaDao;
+import com.tnd.pw.development.idea.dao.impl.IdeaDaoImpl;
+import com.tnd.pw.development.idea.service.IdeaService;
+import com.tnd.pw.development.idea.service.impl.IdeaServiceImpl;
+import com.tnd.pw.development.runner.handler.DevHandler;
+import com.tnd.pw.development.runner.handler.FeatureHandler;
+import com.tnd.pw.development.runner.handler.IdeaHandler;
+import com.tnd.pw.development.runner.handler.ReleaseHandler;
+import com.tnd.pw.development.runner.service.FeatureHandlerService;
+import com.tnd.pw.development.runner.service.IdeaHandlerService;
+import com.tnd.pw.development.runner.service.ReleaseHandlerService;
+import com.tnd.pw.development.runner.service.impl.FeatureHandlerServiceImpl;
+import com.tnd.pw.development.runner.service.impl.IdeaHandlerServiceImpl;
+import com.tnd.pw.development.runner.service.impl.ReleaseHandlerServiceImpl;
+import com.tnd.pw.development.runner.service.impl.SdkService;
 import com.tnd.pw.action.sdk.ActionServiceSdkClient;
 import com.tnd.pw.action.sdk.impl.ActionServiceSdkClientImpl;
 import com.tnd.pw.development.dbservice.DataHelper;
@@ -21,12 +28,16 @@ import com.tnd.pw.development.feature.service.FeatureService;
 import com.tnd.pw.development.feature.service.impl.FeatureServiceImpl;
 import com.tnd.pw.development.release.dao.EpicDao;
 import com.tnd.pw.development.release.dao.ReleaseDao;
+import com.tnd.pw.development.release.dao.ReleaseLayoutDao;
 import com.tnd.pw.development.release.dao.ReleasePhaseDao;
 import com.tnd.pw.development.release.dao.impl.EpicDaoImpl;
 import com.tnd.pw.development.release.dao.impl.ReleaseDaoImpl;
+import com.tnd.pw.development.release.dao.impl.ReleaseLayoutDaoImpl;
 import com.tnd.pw.development.release.dao.impl.ReleasePhaseDaoImpl;
 import com.tnd.pw.development.release.service.ReleaseService;
 import com.tnd.pw.development.release.service.impl.ReleaseServiceImpl;
+import com.tnd.pw.report.sdk.ReportSdkClient;
+import com.tnd.pw.report.sdk.impl.ReportSdkClientImpl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -43,6 +54,10 @@ public class DevelopmentConfig {
     private String action_service_host;
     @Value("${action.service.port}")
     private String action_service_port;
+    @Value("${report.service.host}")
+    private String report_service_host;
+    @Value("${report.service.port}")
+    private String report_service_port;
 
     @Bean
     public ActionServiceSdkClient actionServiceSdkClient() {
@@ -52,6 +67,11 @@ public class DevelopmentConfig {
     @Bean
     public DBServiceSdkClient dbServiceSdkClient() {
         return new DBServiceSdkClientImpl(db_host,Integer.parseInt(db_port), 1);
+    }
+
+    @Bean
+    public ReportSdkClient reportSdkClient() {
+        return new ReportSdkClientImpl(report_service_host, Integer.parseInt(report_service_port), 1);
     }
 
     @Bean
@@ -75,6 +95,11 @@ public class DevelopmentConfig {
     }
 
     @Bean
+    public ReleaseLayoutDao releaseLayoutDao() {
+        return new ReleaseLayoutDaoImpl();
+    }
+
+    @Bean
     public EpicDao epicDao() {
         return new EpicDaoImpl();
     }
@@ -90,6 +115,11 @@ public class DevelopmentConfig {
     }
 
     @Bean
+    public IdeaDao ideaDao() {
+        return new IdeaDaoImpl();
+    }
+
+    @Bean
     public ReleaseService releaseService() {
         return new ReleaseServiceImpl();
     }
@@ -100,6 +130,11 @@ public class DevelopmentConfig {
     }
 
     @Bean
+    public IdeaService ideaService() {
+        return new IdeaServiceImpl();
+    }
+
+    @Bean
     public FeatureHandlerService featureHandlerService() {
         return new FeatureHandlerServiceImpl();
     }
@@ -107,6 +142,11 @@ public class DevelopmentConfig {
     @Bean
     public ReleaseHandlerService releaseHandlerService() {
         return new ReleaseHandlerServiceImpl();
+    }
+
+    @Bean
+    public IdeaHandlerService ideaHandlerService() {
+        return new IdeaHandlerServiceImpl();
     }
 
     @Bean
@@ -123,4 +163,10 @@ public class DevelopmentConfig {
     public DevHandler devHandler() {
         return new DevHandler();
     }
+
+    @Bean
+    public IdeaHandler ideaHandler() {
+        return new IdeaHandler();
+    }
+
 }

@@ -6,11 +6,14 @@ import com.tnd.pw.development.release.constants.EpicState;
 import com.tnd.pw.development.release.constants.ReleaseState;
 import com.tnd.pw.development.release.dao.EpicDao;
 import com.tnd.pw.development.release.dao.ReleaseDao;
+import com.tnd.pw.development.release.dao.ReleaseLayoutDao;
 import com.tnd.pw.development.release.dao.ReleasePhaseDao;
 import com.tnd.pw.development.release.entity.EpicEntity;
 import com.tnd.pw.development.release.entity.ReleaseEntity;
+import com.tnd.pw.development.release.entity.ReleaseLayoutEntity;
 import com.tnd.pw.development.release.entity.ReleasePhaseEntity;
 import com.tnd.pw.development.release.exception.EpicNotFoundException;
+import com.tnd.pw.development.release.exception.ReleaseLayoutNotFoundException;
 import com.tnd.pw.development.release.exception.ReleaseNotFoundException;
 import com.tnd.pw.development.release.exception.ReleasePhaseNotFoundException;
 import com.tnd.pw.development.release.service.ReleaseService;
@@ -26,6 +29,8 @@ public class ReleaseServiceImpl implements ReleaseService {
     private ReleasePhaseDao releasePhaseDao;
     @Autowired
     private EpicDao epicDao;
+    @Autowired
+    private ReleaseLayoutDao releaseLayoutDao;
 
     @Override
     public ReleaseEntity createRelease(ReleaseEntity entity) throws DBServiceException {
@@ -100,5 +105,21 @@ public class ReleaseServiceImpl implements ReleaseService {
     @Override
     public void removeEpic(EpicEntity entity) throws DBServiceException {
         epicDao.remove(entity);
+    }
+
+    @Override
+    public void createReleaseLayout(ReleaseLayoutEntity entity) throws DBServiceException {
+        entity.setId(GenUID.genIdByParent(entity.getReleaseId()));
+        releaseLayoutDao.create(entity);
+    }
+
+    @Override
+    public List<ReleaseLayoutEntity> getReleaseLayout(ReleaseLayoutEntity entity) throws DBServiceException, ReleaseLayoutNotFoundException {
+        return releaseLayoutDao.get(entity);
+    }
+
+    @Override
+    public void updateReleaseLayout(ReleaseLayoutEntity entity) throws DBServiceException {
+        releaseLayoutDao.update(entity);
     }
 }

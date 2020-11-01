@@ -30,4 +30,7 @@ public class CsDevRepresentation implements Serializable {
 
     @SerializedName("list_requirement")
     private List<RequirementRep> requirementReps;
+
+    @SerializedName("list_idea")
+    private List<IdeaRep> ideaReps;
 }

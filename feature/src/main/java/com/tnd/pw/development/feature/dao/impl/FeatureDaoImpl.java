@@ -17,8 +17,8 @@ public class FeatureDaoImpl implements FeatureDao {
 
     private static final String SQL_CREATE =
             "INSERT INTO feature(id, product_id, name, type, state, release_id, " +
-                    "description, files, created_at, created_by) " +
-                    "values(%d, %d, '%s',  %d, %d, %d, '%s', '%s', %d, %d)";
+                    "description, files, created_at, created_by, start_on, end_on) " +
+                    "values(%d, %d, '%s',  %d, %d, %d, '%s', '%s', %d, %d, %d, %d)";
     private static final String SQL_SELECT_BY_ID =
             "SELECT * FROM feature WHERE id = %d ORDER BY created_at";
     private static final String SQL_SELECT_BY_LIST_RELEASE_ID =
@@ -29,7 +29,7 @@ public class FeatureDaoImpl implements FeatureDao {
             "SELECT * FROM feature WHERE release_id = %d ORDER BY created_at";
     private static final String SQL_UPDATE =
             "UPDATE feature SET name = '%s', state = %d, release_id = %d, initiative_id = %d, goals = '%s', " +
-                    "assign_to = %d, epic_id = %d, requirements = '%s', description = '%s', files = '%s' " +
+                    "assign_to = %d, epic_id = %d, requirements = '%s', description = '%s', files = '%s', start_on = %d, end_on = %d " +
                     "WHERE id = %d";
     private static final String SQL_DELETE =
             "DELETE FROM feature WHERE id = %d";
@@ -38,7 +38,7 @@ public class FeatureDaoImpl implements FeatureDao {
     public void create(FeatureEntity entity) throws DBServiceException {
         String query = String.format(SQL_CREATE, entity.getId(), entity.getProductId(), entity.getName(),
                 entity.getType(), entity.getState(), entity.getReleaseId(), entity.getDescription(),
-                entity.getFiles(), entity.getCreatedAt(), entity.getCreatedBy());
+                entity.getFiles(), entity.getCreatedAt(), entity.getCreatedBy(), entity.getStartOn(), entity.getEndOn());
         dataHelper.executeSQL(query);
     }
 
@@ -80,7 +80,8 @@ public class FeatureDaoImpl implements FeatureDao {
     public void update(FeatureEntity entity) throws DBServiceException {
         String query = String.format(SQL_UPDATE, entity.getName(), entity.getState(),entity.getReleaseId(),
                 entity.getInitiativeId(),entity.getGoals(), entity.getAssignTo(), entity.getEpicId(),
-                entity.getRequirements(), entity.getDescription(), entity.getFiles(), entity.getId());
+                entity.getRequirements(), entity.getDescription(), entity.getFiles(), entity.getStartOn(), entity.getEndOn(),
+                entity.getId());
         dataHelper.executeSQL(query);
     }
 

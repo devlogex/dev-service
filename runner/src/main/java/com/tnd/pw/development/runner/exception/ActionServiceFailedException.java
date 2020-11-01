@@ -1,4 +1,4 @@
-package com.tnd.pw.action.runner.exception;
+package com.tnd.pw.development.runner.exception;
 
 public class ActionServiceFailedException extends Exception {
 }

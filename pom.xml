@@ -14,6 +14,7 @@
         <module>release</module>
         <module>feature</module>
         <module>common</module>
+        <module>idea</module>
     </modules>
 
     <properties>
@@ -27,6 +28,7 @@
         <dev.version>1.0-SNAPSHOT</dev.version>
         <lombok.version>1.18.12</lombok.version>
         <action.service.version>1.0-SNAPSHOT</action.service.version>
+        <report.version>1.0-SNAPSHOT</report.version>
         <spring.version>5.2.6.RELEASE</spring.version>
     </properties>
 
@@ -114,6 +116,11 @@
             </dependency>
             <dependency>
                 <groupId>com.tnd.pw.development</groupId>
+                <artifactId>idea</artifactId>
+                <version>${dev.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.tnd.pw.development</groupId>
                 <artifactId>feature</artifactId>
                 <version>${dev.version}</version>
             </dependency>
@@ -131,6 +138,11 @@
                 <groupId>com.tnd.dbservice</groupId>
                 <artifactId>sdk</artifactId>
                 <version>${dbservice.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.tnd.pw.report</groupId>
+                <artifactId>sdk</artifactId>
+                <version>${report.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

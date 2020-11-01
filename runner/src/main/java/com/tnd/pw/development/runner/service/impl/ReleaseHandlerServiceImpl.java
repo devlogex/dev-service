@@ -1,10 +1,12 @@
-package com.tnd.pw.action.runner.service.impl;
+package com.tnd.pw.development.runner.service.impl;
 
 import com.tnd.common.api.common.Utils.GenUID;
 import com.tnd.dbservice.common.exception.DBServiceException;
 import com.tnd.pw.action.common.representations.CsActionRepresentation;
-import com.tnd.pw.action.runner.exception.ActionServiceFailedException;
-import com.tnd.pw.action.runner.service.ReleaseHandlerService;
+import com.tnd.pw.action.common.representations.TodoRepresentation;
+import com.tnd.pw.development.runner.exception.ActionServiceFailedException;
+import com.tnd.pw.development.runner.service.ReleaseHandlerService;
+import com.tnd.pw.action.todos.constants.TodoState;
 import com.tnd.pw.development.common.representations.CsDevRepresentation;
 import com.tnd.pw.development.common.representations.EpicRep;
 import com.tnd.pw.development.common.representations.ReleasePhaseRep;
@@ -20,11 +22,13 @@ import com.tnd.pw.development.release.constants.PhaseType;
 import com.tnd.pw.development.release.constants.ReleaseState;
 import com.tnd.pw.development.release.entity.EpicEntity;
 import com.tnd.pw.development.release.entity.ReleaseEntity;
+import com.tnd.pw.development.release.entity.ReleaseLayoutEntity;
 import com.tnd.pw.development.release.entity.ReleasePhaseEntity;
 import com.tnd.pw.development.release.exception.EpicNotFoundException;
 import com.tnd.pw.development.release.exception.ReleaseNotFoundException;
 import com.tnd.pw.development.release.exception.ReleasePhaseNotFoundException;
 import com.tnd.pw.development.release.service.ReleaseService;
+import com.tnd.pw.report.common.constants.ReportAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +65,15 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
         if(request.isGeneratePhases()) {
             createDefaultPhases(release);
         }
+
+        releaseService.createReleaseLayout(
+                ReleaseLayoutEntity.builder()
+                        .releaseId(release.getId())
+                        .productId(release.getProductId())
+                        .layout(GsonUtils.convertToString(new ArrayList()))
+                        .build());
+
+        sdkService.createHistory(request.getPayload().getUserId(), release.getId(), ReportAction.CREATED, GsonUtils.convertToString(release));
 
         return getRelease(release.getProductId());
     }
@@ -102,12 +115,44 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
         } catch (ReleasePhaseNotFoundException e) {
         }
         CsActionRepresentation actionRep = sdkService.getTodoComment(releaseEntity.getId());
-        return RepresentationBuilder.buildReleaseRep(releaseEntity, actionRep, releasePhase);
+
+        int process = calProcess(releaseEntity);
+
+        sdkService.createWatcher(request.getPayload().getUserId(), releaseEntity.getId());
+        return RepresentationBuilder.buildReleaseRep(releaseEntity, actionRep, releasePhase, process);
+    }
+
+    private int calProcess(ReleaseEntity releaseEntity) throws DBServiceException, ActionServiceFailedException {
+        int process = 0;
+        try {
+            List<FeatureEntity> features = featureService.getFeature(
+                    FeatureEntity.builder()
+                            .releaseId(releaseEntity.getId())
+                            .build()
+            );
+            List<Long> featureIds = features.stream().map(feature->feature.getId()).collect(Collectors.toList());
+            CsActionRepresentation csActionRep = sdkService.getTodo(featureIds);
+            if(csActionRep == null) {
+                return 100;
+            }
+            List<TodoRepresentation> todoReps = sdkService.getTodo(featureIds).getTodoReps();
+            List<FeatureEntity> completeFeatures = features.stream().filter(feature -> {
+                Boolean isPending = todoReps.stream().anyMatch(todo -> todo.getBelongId().compareTo(feature.getId()) == 0 && todo.getState().equals(TodoState.PENDING.name()));
+                return !isPending;
+            }).collect(Collectors.toList());
+            process = completeFeatures.size() / features.size() * 100;
+
+        } catch (FeatureNotFoundException e) {
+            process = 100;
+        }
+        return process;
     }
 
     @Override
     public ReleaseRep updateRelease(DevRequest request) throws DBServiceException, ReleaseNotFoundException, ActionServiceFailedException {
         ReleaseEntity releaseEntity = releaseService.getRelease(ReleaseEntity.builder().id(request.getId()).build()).get(0);
+        String oldRelease = GsonUtils.convertToString(releaseEntity);
+
         if(request.getName() != null) {
             releaseEntity.setName(request.getName());
         }
@@ -150,7 +195,11 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
             releasePhase = releaseService.getReleasePhase(ReleasePhaseEntity.builder().releaseId(releaseEntity.getId()).build());
         } catch (ReleasePhaseNotFoundException e) {}
         CsActionRepresentation actionRep = sdkService.getTodoComment(releaseEntity.getId());
-        return RepresentationBuilder.buildReleaseRep(releaseEntity, actionRep, releasePhase);
+        int process = calProcess(releaseEntity);
+
+        sdkService.createHistory(request.getPayload().getUserId(), releaseEntity.getId(), ReportAction.UPDATED, oldRelease + "|" + GsonUtils.convertToString(releaseEntity));
+
+        return RepresentationBuilder.buildReleaseRep(releaseEntity, actionRep, releasePhase, process);
     }
 
     @Override

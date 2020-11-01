@@ -16,8 +16,8 @@ public class ReleaseDaoImpl implements ReleaseDao {
     private DataHelper dataHelper;
 
     private static final String SQL_CREATE =
-            "INSERT INTO release(id, product_id, name, state, owner, theme, created_at, created_by) " +
-                    "values(%d, %d, '%s', %d, %d, '%s', %d, %d)";
+            "INSERT INTO release(id, product_id, name, state, owner, theme, created_at, created_by, start_on, end_on) " +
+                    "values(%d, %d, '%s', %d, %d, '%s', %d, %d, %d, %d)";
     private static final String SQL_SELECT_BY_ID =
             "SELECT * FROM release WHERE id = %d ORDER BY created_at";
     private static final String SQL_SELECT_BY_PRODUCT_ID =
@@ -37,7 +37,7 @@ public class ReleaseDaoImpl implements ReleaseDao {
     public void create(ReleaseEntity entity) throws DBServiceException {
         String query = String.format(SQL_CREATE, entity.getId(), entity.getProductId(), entity.getName(),
                 entity.getState(), entity.getOwner(), entity.getTheme(),
-                entity.getCreatedAt(), entity.getCreatedBy());
+                entity.getCreatedAt(), entity.getCreatedBy(), entity.getStartOn(), entity.getEndOn());
         dataHelper.executeSQL(query);
     }
 

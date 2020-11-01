@@ -3,8 +3,10 @@ package com.tnd.pw.development.release.service;
 import com.tnd.dbservice.common.exception.DBServiceException;
 import com.tnd.pw.development.release.entity.EpicEntity;
 import com.tnd.pw.development.release.entity.ReleaseEntity;
+import com.tnd.pw.development.release.entity.ReleaseLayoutEntity;
 import com.tnd.pw.development.release.entity.ReleasePhaseEntity;
 import com.tnd.pw.development.release.exception.EpicNotFoundException;
+import com.tnd.pw.development.release.exception.ReleaseLayoutNotFoundException;
 import com.tnd.pw.development.release.exception.ReleaseNotFoundException;
 import com.tnd.pw.development.release.exception.ReleasePhaseNotFoundException;
 
@@ -26,4 +28,8 @@ public interface ReleaseService {
     List<EpicEntity> getEpic(EpicEntity entity) throws DBServiceException, EpicNotFoundException;
     void updateEpic(EpicEntity entity) throws DBServiceException;
     void removeEpic(EpicEntity entity) throws DBServiceException;
+
+    void createReleaseLayout(ReleaseLayoutEntity entity) throws DBServiceException;
+    List<ReleaseLayoutEntity> getReleaseLayout(ReleaseLayoutEntity entity) throws DBServiceException, ReleaseLayoutNotFoundException;
+    void updateReleaseLayout(ReleaseLayoutEntity entity) throws DBServiceException;
 }

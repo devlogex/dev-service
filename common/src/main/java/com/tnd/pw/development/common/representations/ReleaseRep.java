@@ -51,6 +51,9 @@ public class ReleaseRep implements Serializable {
     @SerializedName("created_by")
     private Long createdBy;
 
+    @SerializedName("process")
+    private Integer process;
+
     @SerializedName("list_features")
     private List<FeatureRep> featureReps;
 

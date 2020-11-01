@@ -57,5 +57,12 @@ public class DevRequest extends ProductTokenRequest {
     @SerializedName("template")
     private Boolean template;
 
+    @SerializedName("layout")
+    private List<Long> layout;
+
+    @SerializedName("vote")
+    private String vote;
+    @SerializedName("content")
+    private String content;
 
 }
