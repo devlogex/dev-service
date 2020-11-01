@@ -54,4 +54,12 @@ public class IdeaHandler implements BaseHandler {
         LOGGER.info("[IdeaHandler] getIdeaInfo() - response: {}", GsonUtils.convertToString(response));
         return new BaseResponse<>(response);
     }
+
+    @HandlerService(path = "/development/idea/vote", protocol = "POST")
+    public BaseResponse<IdeaRep> voteIdea(DevRequest request) throws DBServiceException, ActionServiceFailedException, IdeaNotFoundException {
+        LOGGER.info("[IdeaHandler] voteIdea() - request: {}", GsonUtils.convertToString(request));
+        IdeaRep response = ideaHandlerService.voteIdea(request);
+        LOGGER.info("[IdeaHandler] voteIdea() - response: {}", GsonUtils.convertToString(response));
+        return new BaseResponse<>(response);
+    }
 }

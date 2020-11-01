@@ -1,5 +1,6 @@
 package com.tnd.pw.development.runner.service.impl;
 
+import com.google.common.reflect.TypeToken;
 import com.tnd.dbservice.common.exception.DBServiceException;
 import com.tnd.pw.action.common.representations.CsActionRepresentation;
 import com.tnd.pw.development.common.representations.CsDevRepresentation;
@@ -76,6 +77,27 @@ public class IdeaHandlerServiceImpl implements IdeaHandlerService {
                         .id(request.getId())
                         .build()
         ).get(0);
+        CsActionRepresentation actionRep = sdkService.getTodoComment(ideaEntity.getId());
+        return RepresentationBuilder.buildIdeaRep(ideaEntity, request.getPayload().getUserId(), actionRep);
+    }
+
+    @Override
+    public IdeaRep voteIdea(DevRequest request) throws DBServiceException, IdeaNotFoundException, ActionServiceFailedException {
+        IdeaEntity ideaEntity = ideaService.get(
+                IdeaEntity.builder()
+                        .id(request.getId())
+                        .build()
+        ).get(0);
+        HashSet<Long> set = GsonUtils.getGson().fromJson(ideaEntity.getVote(), new TypeToken<HashSet<Long>>(){}.getType());
+        Long userId = request.getPayload().getUserId();
+        if(set.contains(userId)) {
+            set.remove(userId);
+        } else {
+            set.add(userId);
+        }
+        ideaEntity.setVote(GsonUtils.convertToString(set));
+        ideaService.update(ideaEntity);
+
         CsActionRepresentation actionRep = sdkService.getTodoComment(ideaEntity.getId());
         return RepresentationBuilder.buildIdeaRep(ideaEntity, request.getPayload().getUserId(), actionRep);
     }
