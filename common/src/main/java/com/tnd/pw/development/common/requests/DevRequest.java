@@ -17,8 +17,8 @@ public class DevRequest extends ProductTokenRequest {
     private String state;
     @SerializedName("owner")
     private Long owner;
-    @SerializedName("initiative_id")
-    private Long initiativeId;
+    @SerializedName("initiatives")
+    private List<Long> initiatives;
     @SerializedName("release_id")
     private Long releaseId;
     @SerializedName("goals")

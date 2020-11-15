@@ -25,6 +25,8 @@ public class IdeaEntity  implements Serializable {
     private Integer state;
     @SerializedName("content")
     private String content;
+    @SerializedName("files")
+    private String files;
     @SerializedName("vote")
     private String vote;
     @SerializedName("created_at")

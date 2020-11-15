@@ -30,10 +30,10 @@ public class EpicRep implements Serializable {
     private Long releaseId;
     @SerializedName("assign_to")
     private Long assignTo;
-    @SerializedName("initiative_id")
-    private Long initiativeId;
+    @SerializedName("initiatives")
+    private List<Long> initiatives;
     @SerializedName("goals")
-    private String goals;
+    private List<Long> goals;
     @SerializedName("description")
     private String description;
     @SerializedName("files")

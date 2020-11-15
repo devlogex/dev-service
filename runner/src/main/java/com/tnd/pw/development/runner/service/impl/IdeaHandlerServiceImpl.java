@@ -15,6 +15,7 @@ import com.tnd.pw.development.idea.exception.IdeaNotFoundException;
 import com.tnd.pw.development.idea.service.IdeaService;
 import com.tnd.pw.development.runner.exception.ActionServiceFailedException;
 import com.tnd.pw.development.runner.service.IdeaHandlerService;
+import com.tnd.pw.report.common.constants.ReportAction;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,7 +35,7 @@ public class IdeaHandlerServiceImpl implements IdeaHandlerService {
         HashSet<Long> set = new HashSet<>();
         set.add(request.getPayload().getUserId());
 
-        ideaService.create(
+        IdeaEntity ideaEntity = ideaService.create(
                 IdeaEntity.builder()
                         .name(request.getName())
                         .productId(request.getId())
@@ -44,7 +45,9 @@ public class IdeaHandlerServiceImpl implements IdeaHandlerService {
                         .vote(GsonUtils.convertToString(set))
                         .build()
         );
-        return getIdeas(request.getPayload().getUserId(), request.getPayload().getWorkspaceId());
+        sdkService.createHistory(request.getPayload().getUserId(), ideaEntity.getId(), ReportAction.CREATED, GsonUtils.convertToString(ideaEntity));
+
+        return getIdeas(request.getPayload().getUserId(), request.getPayload().getWorkspaceId(), null);
     }
 
     @Override
@@ -54,6 +57,7 @@ public class IdeaHandlerServiceImpl implements IdeaHandlerService {
                         .id(request.getId())
                         .build()
         ).get(0);
+        String oldIdea = GsonUtils.convertToString(ideaEntity);
 
         if(request.getName() != null) {
             ideaEntity.setName(request.getName());
@@ -64,14 +68,23 @@ public class IdeaHandlerServiceImpl implements IdeaHandlerService {
         if(request.getContent() != null) {
             ideaEntity.setContent(request.getContent());
         }
+        if(request.getFiles() != null) {
+            ideaEntity.setFiles(request.getFiles());
+        }
         ideaService.update(ideaEntity);
-        
-        return getIdeas(request.getPayload().getUserId(), request.getPayload().getWorkspaceId());
+        sdkService.createHistory(request.getPayload().getUserId(), ideaEntity.getId(), ReportAction.UPDATED, oldIdea + "|" + GsonUtils.convertToString(ideaEntity));
+        return getIdeas(request.getPayload().getUserId(), request.getPayload().getWorkspaceId(), null);
     }
 
     @Override
     public CsDevRepresentation getIdea(WorkspaceRequest request) throws DBServiceException {
-        return getIdeas(request.getPayload().getUserId(), request.getPayload().getWorkspaceId());
+        Long userId = request.getPayload().getUserId();
+        Long workspaceId = request.getPayload().getWorkspaceId();
+        Integer state = request.getState() != null ?
+                IdeaState.valueOf(request.getState()).ordinal()
+                :
+                null;
+        return getIdeas(userId, workspaceId, state);
     }
 
     @Override
@@ -82,6 +95,7 @@ public class IdeaHandlerServiceImpl implements IdeaHandlerService {
                         .build()
         ).get(0);
         CsActionRepresentation actionRep = sdkService.getTodoComment(ideaEntity.getId());
+        sdkService.createWatcher(request.getPayload().getUserId(), ideaEntity.getId());
         return RepresentationBuilder.buildIdeaRep(ideaEntity, request.getPayload().getUserId(), actionRep);
     }
 
@@ -106,10 +120,15 @@ public class IdeaHandlerServiceImpl implements IdeaHandlerService {
         return RepresentationBuilder.buildIdeaRep(ideaEntity, request.getPayload().getUserId(), actionRep);
     }
 
-    private CsDevRepresentation getIdeas(Long userId, Long workspaceId) throws DBServiceException {
+    private CsDevRepresentation getIdeas(Long userId, Long workspaceId, Integer state) throws DBServiceException {
         List<IdeaEntity> ideaEntities = null;
         try {
-            ideaEntities = ideaService.get(IdeaEntity.builder().workspaceId(workspaceId).build());
+            ideaEntities = ideaService.get(
+                    IdeaEntity.builder()
+                            .workspaceId(workspaceId)
+                            .state(state)
+                            .build()
+            );
         } catch (IdeaNotFoundException e) {
         }
         return RepresentationBuilder.buildListIdeaRep(ideaEntities, userId);

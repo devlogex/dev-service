@@ -75,8 +75,10 @@ public class RepresentationBuilder {
             releaseRep.setCreatedBy(releaseEntity.getCreatedBy());
             releaseRep.setState(ReleaseState.values()[releaseEntity.getState()].name());
             releaseRep.setOwner(releaseEntity.getOwner());
-            releaseRep.setInitiativeId(releaseEntity.getInitiativeId());
-            releaseRep.setGoals(releaseEntity.getGoals());
+            List<Long> initiatives = GsonUtils.toListObject(releaseEntity.getInitiatives(), Long.class);
+            List<Long> goals = GsonUtils.toListObject(releaseEntity.getGoals(), Long.class);
+            releaseRep.setInitiativeId(initiatives);
+            releaseRep.setGoals(goals);
 
             releaseRep.setProcess(process);
         }
@@ -145,12 +147,15 @@ public class RepresentationBuilder {
 
             epicRep.setState(EpicState.values()[epicEntity.getState()].name());
             epicRep.setReleaseId(epicEntity.getReleaseId());
-            epicRep.setInitiativeId(epicEntity.getInitiativeId());
-            epicRep.setGoals(epicEntity.getGoals());
             epicRep.setDescription(epicEntity.getDescription());
             epicRep.setFiles(epicEntity.getFiles());
             epicRep.setCreatedAt(epicEntity.getCreatedAt());
             epicRep.setCreatedBy(epicEntity.getCreatedBy());
+
+            List<Long> initiatives = GsonUtils.toListObject(epicEntity.getInitiatives(), Long.class);
+            List<Long> goals = GsonUtils.toListObject(epicEntity.getGoals(), Long.class);
+            epicRep.setInitiatives(initiatives);
+            epicRep.setGoals(goals);
         }
         return epicRep;
     }
@@ -293,6 +298,7 @@ public class RepresentationBuilder {
             ideaRep.setCommentReps(actionRep.getCommentReps());
 
             ideaRep.setContent(ideaEntity.getContent());
+            ideaRep.setFiles(ideaEntity.getFiles());
         }
         return ideaRep;
     }

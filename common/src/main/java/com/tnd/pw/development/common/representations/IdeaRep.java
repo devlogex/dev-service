@@ -24,6 +24,8 @@ public class IdeaRep implements Serializable {
     private String state;
     @SerializedName("content")
     private String content;
+    @SerializedName("files")
+    private String files;
     @SerializedName("vote_number")
     private Integer voteNumber;
     @SerializedName("voted")

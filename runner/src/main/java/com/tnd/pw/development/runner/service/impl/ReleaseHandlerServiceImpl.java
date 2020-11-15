@@ -162,8 +162,8 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
         if(request.getOwner() != null) {
             releaseEntity.setOwner(request.getOwner());
         }
-        if(request.getInitiativeId() != null) {
-            releaseEntity.setInitiativeId(request.getInitiativeId());
+        if(request.getInitiatives() != null) {
+            releaseEntity.setInitiatives(GsonUtils.convertToString(request.getInitiatives()));
         }
         if(request.getGoals() != null) {
             releaseEntity.setGoals(GsonUtils.convertToString(request.getGoals()));
@@ -349,8 +349,8 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
         if(request.getAssignTo() != null) {
             epicEntity.setAssignTo(request.getAssignTo());
         }
-        if(request.getInitiativeId() != null) {
-            epicEntity.setInitiativeId(request.getInitiativeId());
+        if(request.getInitiatives() != null) {
+            epicEntity.setInitiatives(GsonUtils.convertToString(request.getInitiatives()));
         }
         if(request.getGoals() != null) {
             epicEntity.setGoals(GsonUtils.convertToString(request.getGoals()));

@@ -4,13 +4,10 @@ import com.tnd.dbservice.common.exception.DBServiceException;
 import com.tnd.pw.development.dbservice.DataHelper;
 import com.tnd.pw.development.release.dao.EpicDao;
 import com.tnd.pw.development.release.entity.EpicEntity;
-import com.tnd.pw.development.release.entity.ReleaseEntity;
 import com.tnd.pw.development.release.exception.EpicNotFoundException;
-import com.tnd.pw.development.release.exception.ReleaseNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.CollectionUtils;
 
-import java.io.IOException;
 import java.util.List;
 
 public class EpicDaoImpl implements EpicDao {
@@ -28,7 +25,7 @@ public class EpicDaoImpl implements EpicDao {
     private static final String SQL_SELECT_BY_RELEASE_ID =
             "SELECT * FROM epic WHERE release_id = %d ORDER BY created_at";
     private static final String SQL_UPDATE =
-            "UPDATE epic SET name = '%s', state = %d, release_id = %d, initiative_id = %d, goals = '%s', " +
+            "UPDATE epic SET name = '%s', state = %d, release_id = %d, initiatives = '%s', goals = '%s', " +
                     "assign_to = %d, description = '%s', files = '%s' " +
                     "WHERE id = %d";
     private static final String SQL_DELETE =
@@ -64,7 +61,7 @@ public class EpicDaoImpl implements EpicDao {
     @Override
     public void update(EpicEntity entity) throws DBServiceException {
         String query = String.format(SQL_UPDATE, entity.getName(), entity.getState(),entity.getReleaseId(),
-                entity.getInitiativeId(),entity.getGoals(), entity.getAssignTo(), entity.getDescription(),
+                entity.getInitiatives(),entity.getGoals(), entity.getAssignTo(), entity.getDescription(),
                 entity.getFiles(), entity.getId());
         dataHelper.executeSQL(query);
     }

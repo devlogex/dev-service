@@ -23,8 +23,8 @@ public class ReleaseEntity implements Serializable {
     private Integer state;
     @SerializedName("owner")
     private Long owner;
-    @SerializedName("initiative_id")
-    private Long initiativeId;
+    @SerializedName("initiatives")
+    private String initiatives;
     @SerializedName("goals")
     private String goals;
     @SerializedName("days_to_release")

@@ -15,25 +15,27 @@ public class IdeaDaoImpl implements IdeaDao {
     private DataHelper dataHelper;
 
     private static final String SQL_CREATE =
-            "INSERT INTO idea(id, product_id, workspace_id, name, state, content, " +
+            "INSERT INTO idea(id, product_id, workspace_id, name, state, content, files, " +
                     "vote, created_at, created_by) " +
-                    "values(%d, %d, %d, '%s',  %d, '%s', '%s', %d, %d)";
+                    "values(%d, %d, %d, '%s',  %d, '%s', '%s', '%s', %d, %d)";
     private static final String SQL_SELECT_BY_ID =
             "SELECT * FROM idea WHERE id = %d ORDER BY created_at DESC";
     private static final String SQL_SELECT_BY_PRODUCT_ID =
             "SELECT * FROM idea WHERE product_id = %d ORDER BY created_at DESC";
     private static final String SQL_SELECT_BY_WORKSPACE_ID =
             "SELECT * FROM idea WHERE workspace_id = %d ORDER BY created_at DESC";
+    private static final String SQL_SELECT_BY_WORKSPACE_ID_AND_STATE =
+            "SELECT * FROM idea WHERE workspace_id = %d AND state = %d ORDER BY created_at DESC";
     private static final String SQL_UPDATE =
             "UPDATE idea SET name = '%s', state = %d, content = '%s', " +
-                    "vote = '%s' " +
+                    " files = '%s', vote = '%s' " +
                     "WHERE id = %d";
 
     @Override
     public void create(IdeaEntity entity) throws DBServiceException {
         String query = String.format(SQL_CREATE, entity.getId(), entity.getProductId(),
                 entity.getWorkspaceId(), entity.getName(), entity.getState(), entity.getContent(),
-                entity.getVote(), entity.getCreatedAt(), entity.getCreatedBy());
+                entity.getFiles(), entity.getVote(), entity.getCreatedAt(), entity.getCreatedBy());
         dataHelper.executeSQL(query);
     }
 
@@ -45,6 +47,9 @@ public class IdeaDaoImpl implements IdeaDao {
         }
         else if(entity.getProductId() != null) {
             query = String.format(SQL_SELECT_BY_PRODUCT_ID, entity.getProductId());
+        }
+        else if(entity.getState() != null && entity.getWorkspaceId() != null){
+            query = String.format(SQL_SELECT_BY_WORKSPACE_ID_AND_STATE, entity.getWorkspaceId(), entity.getState());
         }
         else {
             query = String.format(SQL_SELECT_BY_WORKSPACE_ID, entity.getWorkspaceId());
@@ -59,7 +64,7 @@ public class IdeaDaoImpl implements IdeaDao {
     @Override
     public void update(IdeaEntity entity) throws DBServiceException {
         String query = String.format(SQL_UPDATE, entity.getName(), entity.getState(),entity.getContent(),
-                entity.getVote(),entity.getId());
+                entity.getFiles(), entity.getVote(),entity.getId());
         dataHelper.executeSQL(query);
     }
 }

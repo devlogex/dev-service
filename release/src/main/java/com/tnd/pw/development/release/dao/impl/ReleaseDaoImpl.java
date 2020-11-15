@@ -25,7 +25,7 @@ public class ReleaseDaoImpl implements ReleaseDao {
     private static final String SQL_SELECT_BY_DURATION =
             "SELECT * FROM release WHERE ( %d BETWEEN start_on AND end_on ) AND ( %d BETWEEN start_on AND end_on ) ORDER BY created_at";
     private static final String SQL_UPDATE =
-            "UPDATE release SET name = '%s', state = %d, owner = %d, initiative_id = %d, goals = '%s', " +
+            "UPDATE release SET name = '%s', state = %d, owner = %d, initiatives = '%s', goals = '%s', " +
                     "start_on = %d, end_on = %d, days_to_release = %d, release_date = %d, develop_start_on = %d, " +
                     "theme = '%s', files = '%s' " +
                     "WHERE id = %d";
@@ -63,7 +63,7 @@ public class ReleaseDaoImpl implements ReleaseDao {
     @Override
     public void update(ReleaseEntity entity) throws DBServiceException {
         String query = String.format(SQL_UPDATE, entity.getName(), entity.getState(),entity.getOwner(),
-                entity.getInitiativeId(),entity.getGoals(), entity.getStartOn(), entity.getEndOn(),
+                entity.getInitiatives(),entity.getGoals(), entity.getStartOn(), entity.getEndOn(),
                 entity.getDaysToRelease(), entity.getReleaseDate(), entity.getDevelopStartOn(),
                 entity.getTheme(), entity.getFiles(),
                 entity.getId());
