@@ -77,7 +77,7 @@ public class RepresentationBuilder {
             releaseRep.setOwner(releaseEntity.getOwner());
             List<Long> initiatives = GsonUtils.toListObject(releaseEntity.getInitiatives(), Long.class);
             List<Long> goals = GsonUtils.toListObject(releaseEntity.getGoals(), Long.class);
-            releaseRep.setInitiativeId(initiatives);
+            releaseRep.setInitiatives(initiatives);
             releaseRep.setGoals(goals);
 
             releaseRep.setProcess(process);
@@ -214,14 +214,17 @@ public class RepresentationBuilder {
 
             featureRep.setReleaseId(feature.getReleaseId());
             featureRep.setAssignTo(feature.getAssignTo());
-            featureRep.setInitiativeId(feature.getInitiativeId());
-            featureRep.setGoals(feature.getGoals());
             featureRep.setEpicId(feature.getEpicId());
             featureRep.setDescription(feature.getDescription());
             featureRep.setFiles(feature.getFiles());
             featureRep.setRequirements(feature.getRequirements());
             featureRep.setCreatedAt(feature.getCreatedAt());
             featureRep.setCreatedBy(feature.getCreatedBy());
+
+            List<Long> initiatives = GsonUtils.toListObject(feature.getInitiatives(), Long.class);
+            List<Long> goals = GsonUtils.toListObject(feature.getGoals(), Long.class);
+            featureRep.setInitiatives(initiatives);
+            featureRep.setGoals(goals);
 
             if(!CollectionUtils.isEmpty(actionRep.getTodoReps())) {
                 long countComplete = actionRep.getTodoReps().stream().filter(todo->todo.getState().equals(TodoState.COMPLETE.toString())).count();

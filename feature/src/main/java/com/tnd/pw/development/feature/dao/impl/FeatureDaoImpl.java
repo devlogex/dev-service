@@ -79,7 +79,7 @@ public class FeatureDaoImpl implements FeatureDao {
     @Override
     public void update(FeatureEntity entity) throws DBServiceException {
         String query = String.format(SQL_UPDATE, entity.getName(), entity.getState(),entity.getReleaseId(),
-                entity.getInitiativeId(),entity.getGoals(), entity.getAssignTo(), entity.getEpicId(),
+                entity.getInitiatives(),entity.getGoals(), entity.getAssignTo(), entity.getEpicId(),
                 entity.getRequirements(), entity.getDescription(), entity.getFiles(), entity.getStartOn(), entity.getEndOn(),
                 entity.getId());
         dataHelper.executeSQL(query);

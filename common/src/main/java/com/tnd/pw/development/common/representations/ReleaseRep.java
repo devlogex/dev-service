@@ -29,7 +29,7 @@ public class ReleaseRep implements Serializable {
     @SerializedName("owner")
     private Long owner;
     @SerializedName("initiatives")
-    private List<Long> initiativeId;
+    private List<Long> initiatives;
     @SerializedName("goals")
     private List<Long> goals;
     @SerializedName("days_to_release")

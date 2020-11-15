@@ -27,10 +27,10 @@ public class FeatureRep  implements Serializable {
     private String type;
     @SerializedName("assign_to")
     private Long assignTo;
-    @SerializedName("initiative_id")
-    private Long initiativeId;
+    @SerializedName("initiatives")
+    private List<Long> initiatives;
     @SerializedName("goals")
-    private String goals;
+    private List<Long> goals;
     @SerializedName("start_on")
     private Long startOn;
     @SerializedName("end_on")

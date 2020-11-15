@@ -110,8 +110,8 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
         if(request.getAssignTo() != null) {
             featureEntity.setAssignTo(request.getAssignTo());
         }
-        if(request.getInitiativeId() != null) {
-            featureEntity.setInitiativeId(request.getInitiativeId());
+        if(request.getInitiatives() != null) {
+            featureEntity.setInitiatives(GsonUtils.convertToString(request.getInitiatives()));
         }
         if(request.getGoals() != null) {
             featureEntity.setGoals(GsonUtils.convertToString(request.getGoals()));

@@ -27,8 +27,8 @@ public class FeatureEntity implements Serializable {
     private Integer type;
     @SerializedName("assign_to")
     private Long assignTo;
-    @SerializedName("initiative_id")
-    private Long initiativeId;
+    @SerializedName("initiatives")
+    private String initiatives;
     @SerializedName("goals")
     private String goals;
     @SerializedName("epic_id")
