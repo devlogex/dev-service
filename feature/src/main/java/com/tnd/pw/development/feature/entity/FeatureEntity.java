@@ -39,6 +39,10 @@ public class FeatureEntity implements Serializable {
     private Long endOn;
     @SerializedName("requirements")
     private String requirements;
+    @SerializedName("process")
+    private Integer process;
+    @SerializedName("is_complete")
+    private Integer isComplete;
     @SerializedName("description")
     private String description;
     @SerializedName("files")

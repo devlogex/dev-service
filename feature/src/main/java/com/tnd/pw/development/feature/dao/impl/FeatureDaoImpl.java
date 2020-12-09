@@ -25,12 +25,17 @@ public class FeatureDaoImpl implements FeatureDao {
             "SELECT * FROM feature WHERE release_id IN (%s) ORDER BY created_at";
     private static final String SQL_SELECT_BY_PRODUCT_ID =
             "SELECT * FROM feature WHERE product_id = %d ORDER BY created_at";
+    private static final String SQL_SELECT_BY_GOAL_ID =
+            "SELECT * FROM feature WHERE goals LIKE '%%%s%%' ORDER BY created_at";
+    private static final String SQL_SELECT_BY_INITIATIVE_ID =
+            "SELECT * FROM feature WHERE initiatives LIKE '%%%s%%' ORDER BY created_at";
     private static final String SQL_SELECT_BY_RELEASE_ID =
             "SELECT * FROM feature WHERE release_id = %d ORDER BY created_at";
     private static final String SQL_UPDATE =
-            "UPDATE feature SET name = '%s', state = %d, release_id = %d, initiative_id = %d, goals = '%s', " +
-                    "assign_to = %d, epic_id = %d, requirements = '%s', description = '%s', files = '%s', start_on = %d, end_on = %d " +
-                    "WHERE id = %d";
+                "UPDATE feature SET name = '%s', state = %d, release_id = %d, initiatives = '%s', goals = '%s', " +
+                        "assign_to = %d, epic_id = %d, requirements = '%s', description = '%s', files = '%s', start_on = %d, " +
+                        "end_on = %d, process = %d, is_complete = %d " +
+                        "WHERE id = %d";
     private static final String SQL_DELETE =
             "DELETE FROM feature WHERE id = %d";
 
@@ -50,6 +55,12 @@ public class FeatureDaoImpl implements FeatureDao {
         }
         else if(entity.getProductId() != null) {
             query = String.format(SQL_SELECT_BY_PRODUCT_ID, entity.getProductId());
+        }
+        else if(entity.getGoals() != null) {
+            query = String.format(SQL_SELECT_BY_GOAL_ID, entity.getGoals());
+        }
+        else if(entity.getInitiatives() != null) {
+            query = String.format(SQL_SELECT_BY_INITIATIVE_ID, entity.getInitiatives());
         }
         else if(entity.getReleaseId() != null){
             query = String.format(SQL_SELECT_BY_RELEASE_ID, entity.getReleaseId());
@@ -80,7 +91,8 @@ public class FeatureDaoImpl implements FeatureDao {
     public void update(FeatureEntity entity) throws DBServiceException {
         String query = String.format(SQL_UPDATE, entity.getName(), entity.getState(),entity.getReleaseId(),
                 entity.getInitiatives(),entity.getGoals(), entity.getAssignTo(), entity.getEpicId(),
-                entity.getRequirements(), entity.getDescription(), entity.getFiles(), entity.getStartOn(), entity.getEndOn(),
+                entity.getRequirements(), entity.getDescription(), entity.getFiles(), entity.getStartOn(),
+                entity.getEndOn(), entity.getProcess(), entity.getIsComplete(),
                 entity.getId());
         dataHelper.executeSQL(query);
     }

@@ -49,6 +49,8 @@ public class FeatureRep  implements Serializable {
     private Long createdBy;
     @SerializedName("process")
     private Integer process;
+    @SerializedName("is_complete")
+    private Boolean isComplete;
 
     @SerializedName("list_todo")
     private List<TodoRepresentation> todoReps;

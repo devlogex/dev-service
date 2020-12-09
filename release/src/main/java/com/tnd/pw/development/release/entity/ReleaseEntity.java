@@ -37,6 +37,12 @@ public class ReleaseEntity implements Serializable {
     private Long endOn;
     @SerializedName("develop_start_on")
     private Long developStartOn;
+    @SerializedName("process")
+    private Integer process;
+    @SerializedName("pending_features")
+    private Integer pendingFeatures;
+    @SerializedName("completed_features")
+    private Integer completedFeatures;
     @SerializedName("theme")
     private String theme;
     @SerializedName("files")

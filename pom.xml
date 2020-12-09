@@ -15,6 +15,7 @@
         <module>feature</module>
         <module>common</module>
         <module>idea</module>
+        <module>sdk</module>
     </modules>
 
     <properties>

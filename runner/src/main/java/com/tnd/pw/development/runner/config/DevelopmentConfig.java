@@ -10,13 +10,8 @@ import com.tnd.pw.development.runner.handler.DevHandler;
 import com.tnd.pw.development.runner.handler.FeatureHandler;
 import com.tnd.pw.development.runner.handler.IdeaHandler;
 import com.tnd.pw.development.runner.handler.ReleaseHandler;
-import com.tnd.pw.development.runner.service.FeatureHandlerService;
-import com.tnd.pw.development.runner.service.IdeaHandlerService;
-import com.tnd.pw.development.runner.service.ReleaseHandlerService;
-import com.tnd.pw.development.runner.service.impl.FeatureHandlerServiceImpl;
-import com.tnd.pw.development.runner.service.impl.IdeaHandlerServiceImpl;
-import com.tnd.pw.development.runner.service.impl.ReleaseHandlerServiceImpl;
-import com.tnd.pw.development.runner.service.impl.SdkService;
+import com.tnd.pw.development.runner.service.*;
+import com.tnd.pw.development.runner.service.impl.*;
 import com.tnd.pw.action.sdk.ActionServiceSdkClient;
 import com.tnd.pw.action.sdk.impl.ActionServiceSdkClientImpl;
 import com.tnd.pw.development.dbservice.DataHelper;
@@ -43,9 +38,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.PropertySource;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
 @Configuration
 @PropertySource("classpath:application.properties")
 public class DevelopmentConfig {
+    public static ExecutorService executor = Executors.newFixedThreadPool(5);
+
     @Value("${db.host}")
     private String db_host;
     @Value("${db.port}")
@@ -169,4 +169,13 @@ public class DevelopmentConfig {
         return new IdeaHandler();
     }
 
+    @Bean
+    public CalculateService calculateService() {
+        return new CalculateService();
+    }
+
+    @Bean
+    public DevHandlerService devHandlerService() {
+        return new DevHandlerServiceImpl();
+    }
 }

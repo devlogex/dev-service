@@ -10,4 +10,5 @@ public interface IdeaDao {
     void create(IdeaEntity entity) throws DBServiceException;
     List<IdeaEntity> get(IdeaEntity entity) throws DBServiceException, IdeaNotFoundException;
     void update(IdeaEntity entity) throws DBServiceException;
+    void remove(IdeaEntity entity) throws DBServiceException;
 }

@@ -120,6 +120,21 @@ public class IdeaHandlerServiceImpl implements IdeaHandlerService {
         return RepresentationBuilder.buildIdeaRep(ideaEntity, request.getPayload().getUserId(), actionRep);
     }
 
+    @Override
+    public CsDevRepresentation removeIdea(DevRequest request) throws DBServiceException, IdeaNotFoundException {
+        IdeaEntity ideaEntity = ideaService.get(
+                IdeaEntity.builder()
+                        .id(request.getId())
+                        .build()
+        ).get(0);
+        ideaService.remove(
+                IdeaEntity.builder()
+                    .id(ideaEntity.getId())
+                    .build()
+        );
+        return getIdeas(request.getPayload().getUserId(), request.getPayload().getWorkspaceId(), null);
+    }
+
     private CsDevRepresentation getIdeas(Long userId, Long workspaceId, Integer state) throws DBServiceException {
         List<IdeaEntity> ideaEntities = null;
         try {

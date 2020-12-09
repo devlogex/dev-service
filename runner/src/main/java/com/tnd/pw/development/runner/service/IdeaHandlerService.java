@@ -18,4 +18,6 @@ public interface IdeaHandlerService {
     IdeaRep getIdeaInfo(DevRequest request) throws DBServiceException, IdeaNotFoundException, ActionServiceFailedException;
 
     IdeaRep voteIdea(DevRequest request) throws DBServiceException, IdeaNotFoundException, ActionServiceFailedException;
+
+    CsDevRepresentation removeIdea(DevRequest request) throws DBServiceException, IdeaNotFoundException;
 }

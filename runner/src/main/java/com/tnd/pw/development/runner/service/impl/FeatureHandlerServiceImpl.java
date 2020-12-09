@@ -6,6 +6,7 @@ import com.tnd.dbservice.common.exception.DBServiceException;
 import com.tnd.pw.action.common.representations.CsActionRepresentation;
 import com.tnd.pw.development.runner.exception.ActionServiceFailedException;
 import com.tnd.pw.development.runner.exception.InvalidDataException;
+import com.tnd.pw.development.runner.service.CalculateService;
 import com.tnd.pw.development.runner.service.FeatureHandlerService;
 import com.tnd.pw.development.common.representations.CsDevRepresentation;
 import com.tnd.pw.development.common.representations.FeatureRep;
@@ -44,6 +45,8 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
     private SdkService sdkService;
     @Autowired
     private ReleaseService releaseService;
+    @Autowired
+    private CalculateService calculateService;
 
     @Override
     public CsDevRepresentation addFeature(DevRequest request) throws DBServiceException {
@@ -85,7 +88,7 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
         }
 
         sdkService.createHistory(request.getPayload().getUserId(), feature.getId(), ReportAction.CREATED, GsonUtils.convertToString(feature));
-
+        calculateService.calculateDevHide(feature);
         return getFeatures(productId);
     }
 
@@ -132,7 +135,10 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
             featureEntity.setEndOn(request.getEndOn());
         }
 
-        if(request.getReleaseId() != null) {
+        if(request.getReleaseId() != null
+                && request.getReleaseId().compareTo(featureEntity.getReleaseId()) != 0) {
+
+            FeatureEntity oldFeature = featureEntity;
             ReleaseLayoutEntity oldLayoutEntity = releaseService.getReleaseLayout(
                     ReleaseLayoutEntity.builder()
                             .releaseId(featureEntity.getReleaseId()).build()
@@ -152,6 +158,8 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
             releaseService.updateReleaseLayout(newLayoutEntity);
 
             featureEntity.setReleaseId(request.getReleaseId());
+            calculateService.calculateDevHide(oldFeature);
+            calculateService.calculateDevHide(featureEntity);
         }
 
         featureService.updateFeature(featureEntity);
@@ -184,6 +192,7 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
                         .id(request.getId())
                         .build()
         ).get(0);
+        FeatureEntity oldFeature = featureEntity;
         ReleaseLayoutEntity oldLayoutEntityFeature = releaseService.getReleaseLayout(
                 ReleaseLayoutEntity.builder()
                         .releaseId(featureEntity.getReleaseId())
@@ -207,6 +216,9 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
         releaseService.updateReleaseLayout(oldLayoutEntityFeature);
         featureEntity.setReleaseId(request.getReleaseId());
         featureService.updateFeature(featureEntity);
+
+        calculateService.calculateDevHide(oldFeature);
+        calculateService.calculateDevHide(featureEntity);
         return getFeatures(featureEntity.getProductId());
     }
 
@@ -263,6 +275,7 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
                         .build()
         ).get(0);
         featureService.removeFeature(featureEntity);
+        calculateService.calculateDevHide(featureEntity);
         return getFeatures(featureEntity.getProductId());
     }
 

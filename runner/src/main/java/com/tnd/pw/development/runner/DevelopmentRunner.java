@@ -23,6 +23,7 @@ public class DevelopmentRunner {
         commonServer.register(SpringApplicationContext.getBean(IdeaHandler.class));
 
         commonServer.initServlet(8005);
+        commonServer.initGrpc(9005);
         commonServer.startServer();
     }
 }

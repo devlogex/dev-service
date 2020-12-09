@@ -116,36 +116,8 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
         }
         CsActionRepresentation actionRep = sdkService.getTodoComment(releaseEntity.getId());
 
-        int process = calProcess(releaseEntity);
-
         sdkService.createWatcher(request.getPayload().getUserId(), releaseEntity.getId());
-        return RepresentationBuilder.buildReleaseRep(releaseEntity, actionRep, releasePhase, process);
-    }
-
-    private int calProcess(ReleaseEntity releaseEntity) throws DBServiceException, ActionServiceFailedException {
-        int process = 0;
-        try {
-            List<FeatureEntity> features = featureService.getFeature(
-                    FeatureEntity.builder()
-                            .releaseId(releaseEntity.getId())
-                            .build()
-            );
-            List<Long> featureIds = features.stream().map(feature->feature.getId()).collect(Collectors.toList());
-            CsActionRepresentation csActionRep = sdkService.getTodo(featureIds);
-            if(csActionRep == null) {
-                return 100;
-            }
-            List<TodoRepresentation> todoReps = sdkService.getTodo(featureIds).getTodoReps();
-            List<FeatureEntity> completeFeatures = features.stream().filter(feature -> {
-                Boolean isPending = todoReps.stream().anyMatch(todo -> todo.getBelongId().compareTo(feature.getId()) == 0 && todo.getState().equals(TodoState.PENDING.name()));
-                return !isPending;
-            }).collect(Collectors.toList());
-            process = completeFeatures.size() / features.size() * 100;
-
-        } catch (FeatureNotFoundException e) {
-            process = 100;
-        }
-        return process;
+        return RepresentationBuilder.buildReleaseRep(releaseEntity, actionRep, releasePhase);
     }
 
     @Override
@@ -195,11 +167,10 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
             releasePhase = releaseService.getReleasePhase(ReleasePhaseEntity.builder().releaseId(releaseEntity.getId()).build());
         } catch (ReleasePhaseNotFoundException e) {}
         CsActionRepresentation actionRep = sdkService.getTodoComment(releaseEntity.getId());
-        int process = calProcess(releaseEntity);
 
         sdkService.createHistory(request.getPayload().getUserId(), releaseEntity.getId(), ReportAction.UPDATED, oldRelease + "|" + GsonUtils.convertToString(releaseEntity));
 
-        return RepresentationBuilder.buildReleaseRep(releaseEntity, actionRep, releasePhase, process);
+        return RepresentationBuilder.buildReleaseRep(releaseEntity, actionRep, releasePhase);
     }
 
     @Override

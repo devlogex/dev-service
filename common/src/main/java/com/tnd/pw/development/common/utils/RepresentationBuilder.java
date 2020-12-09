@@ -4,6 +4,7 @@ import com.google.common.reflect.TypeToken;
 import com.tnd.pw.action.common.representations.CsActionRepresentation;
 import com.tnd.pw.action.todos.constants.TodoState;
 import com.tnd.pw.development.common.representations.*;
+import com.tnd.pw.development.feature.constants.FeatureIsComplete;
 import com.tnd.pw.development.feature.constants.FeatureState;
 import com.tnd.pw.development.feature.constants.FeatureType;
 import com.tnd.pw.development.feature.constants.RequirementState;
@@ -37,7 +38,7 @@ public class RepresentationBuilder {
         }
         for (ReleaseEntity releaseEntity : releaseEntities) {
             List<FeatureEntity> featureOfRelease = featureEntities.stream().filter(feature -> feature.getReleaseId().compareTo(releaseEntity.getId())==0).collect(Collectors.toList());
-            ReleaseRep releaseRep = buildReleaseRep(releaseEntity, null, null, null);
+            ReleaseRep releaseRep = buildReleaseRep(releaseEntity, null, null);
             releaseRep.setFeatureReps(buildListFeatureRep(featureOfRelease));
             releaseReps.add(releaseRep);
         }
@@ -54,7 +55,7 @@ public class RepresentationBuilder {
         return featureReps;
     }
 
-    public static ReleaseRep buildReleaseRep(ReleaseEntity releaseEntity, CsActionRepresentation actionRep, List<ReleasePhaseEntity> releasePhaseEntities, Integer process) {
+    public static ReleaseRep buildReleaseRep(ReleaseEntity releaseEntity, CsActionRepresentation actionRep, List<ReleasePhaseEntity> releasePhaseEntities) {
         ReleaseRep releaseRep = new ReleaseRep();
         releaseRep.setId(releaseEntity.getId());
         releaseRep.setName(releaseEntity.getName());
@@ -80,7 +81,7 @@ public class RepresentationBuilder {
             releaseRep.setInitiatives(initiatives);
             releaseRep.setGoals(goals);
 
-            releaseRep.setProcess(process);
+            releaseRep.setProcess(releaseEntity.getProcess());
         }
         List<ReleasePhaseRep> releasePhaseReps = new ArrayList<>();
         if(releasePhaseEntities != null) {
@@ -184,8 +185,10 @@ public class RepresentationBuilder {
                 }.getType());
 
                 for (Long featureId : layout) {
-                    FeatureEntity featureEntity = featureEntities.stream().filter(feature -> feature.getId().compareTo(featureId) == 0).collect(Collectors.toList()).get(0);
-                    featureRepList.add(buildFeatureRep(featureEntity, null, null));
+                    List<FeatureEntity> featureList = featureEntities.stream().filter(feature -> feature.getId().compareTo(featureId) == 0).collect(Collectors.toList());
+                    if(!CollectionUtils.isEmpty(featureList)) {
+                        featureRepList.add(buildFeatureRep(featureList.get(0), null, null));
+                    }
                 }
             }
 
@@ -193,7 +196,7 @@ public class RepresentationBuilder {
         }
 
         CsDevRepresentation representation = new CsDevRepresentation();
-        representation.setFeatureReps(featureReps);
+        representation.setMapFeatureReps(featureReps);
         return representation;
     }
 
@@ -304,5 +307,34 @@ public class RepresentationBuilder {
             ideaRep.setFiles(ideaEntity.getFiles());
         }
         return ideaRep;
+    }
+
+    public static CsDevRepresentation statisticDev(List<ReleaseEntity> releaseEntities, List<FeatureEntity> featureEntities) {
+        CsDevRepresentation representation = new CsDevRepresentation();
+        List<ReleaseRep> releaseReps = new ArrayList<>();
+        List<FeatureRep> featureReps = new ArrayList<>();
+        for(ReleaseEntity releaseEntity: releaseEntities) {
+            ReleaseRep releaseRep = new ReleaseRep();
+            releaseRep.setId(releaseEntity.getId());
+            releaseRep.setName(releaseEntity.getName());
+            releaseRep.setProcess(releaseEntity.getProcess());
+            releaseRep.setFeaturePending(releaseEntity.getPendingFeatures());
+            releaseRep.setFeatureComplete(releaseEntity.getCompletedFeatures());
+            releaseRep.setState(ReleaseState.values()[releaseEntity.getState()].name());
+            releaseReps.add(releaseRep);
+        }
+        for(FeatureEntity featureEntity: featureEntities) {
+            FeatureRep featureRep = new FeatureRep();
+            featureRep.setId(featureEntity.getId());
+            featureRep.setName(featureEntity.getName());
+            featureRep.setProcess(featureEntity.getProcess());
+            featureRep.setIsComplete(featureEntity.getIsComplete()== FeatureIsComplete.TRUE);
+            featureRep.setState(ReleaseState.values()[featureEntity.getState()].name());
+            featureReps.add(featureRep);
+        }
+
+        representation.setFeatureReps(featureReps);
+        representation.setReleaseReps(releaseReps);
+        return representation;
     }
 }

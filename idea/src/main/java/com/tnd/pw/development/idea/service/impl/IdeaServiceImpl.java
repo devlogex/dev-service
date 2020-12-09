@@ -33,4 +33,9 @@ public class IdeaServiceImpl implements IdeaService {
     public void update(IdeaEntity entity) throws DBServiceException {
         ideaDao.update(entity);
     }
+
+    @Override
+    public void remove(IdeaEntity entity) throws DBServiceException {
+        ideaDao.remove(entity);
+    }
 }

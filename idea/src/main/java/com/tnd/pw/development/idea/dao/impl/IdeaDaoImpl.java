@@ -30,6 +30,8 @@ public class IdeaDaoImpl implements IdeaDao {
             "UPDATE idea SET name = '%s', state = %d, content = '%s', " +
                     " files = '%s', vote = '%s' " +
                     "WHERE id = %d";
+    private static final String SQL_DELETE =
+            "DELETE FROM idea WHERE id = %d";
 
     @Override
     public void create(IdeaEntity entity) throws DBServiceException {
@@ -65,6 +67,12 @@ public class IdeaDaoImpl implements IdeaDao {
     public void update(IdeaEntity entity) throws DBServiceException {
         String query = String.format(SQL_UPDATE, entity.getName(), entity.getState(),entity.getContent(),
                 entity.getFiles(), entity.getVote(),entity.getId());
+        dataHelper.executeSQL(query);
+    }
+
+    @Override
+    public void remove(IdeaEntity entity) throws DBServiceException {
+        String query = String.format(SQL_DELETE, entity.getId());
         dataHelper.executeSQL(query);
     }
 }

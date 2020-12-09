@@ -16,6 +16,9 @@ public class CsDevRepresentation implements Serializable {
     @SerializedName("list_release")
     private List<ReleaseRep> releaseReps;
 
+    @SerializedName("list_feature_rep")
+    private List<FeatureRep> featureReps;
+
     @SerializedName("list_release_phase")
     private List<ReleasePhaseRep> releasePhaseReps;
 
@@ -23,7 +26,7 @@ public class CsDevRepresentation implements Serializable {
     private List<EpicRep> epicReps;
 
     @SerializedName("list_feature")
-    private HashMap<String, List<FeatureRep>> featureReps;
+    private HashMap<String, List<FeatureRep>> mapFeatureReps;
 
     @SerializedName("feature")
     private FeatureRep featureRep;

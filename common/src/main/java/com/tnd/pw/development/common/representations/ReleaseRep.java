@@ -53,6 +53,10 @@ public class ReleaseRep implements Serializable {
 
     @SerializedName("process")
     private Integer process;
+    @SerializedName("feature_pending")
+    private Integer featurePending;
+    @SerializedName("feature_complete")
+    private Integer featureComplete;
 
     @SerializedName("list_features")
     private List<FeatureRep> featureReps;
