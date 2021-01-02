@@ -27,8 +27,8 @@ public class FeatureRep  implements Serializable {
     private String type;
     @SerializedName("assign_to")
     private Long assignTo;
-    @SerializedName("initiatives")
-    private List<Long> initiatives;
+    @SerializedName("initiative_id")
+    private Long initiativeId;
     @SerializedName("goals")
     private List<Long> goals;
     @SerializedName("start_on")

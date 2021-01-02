@@ -10,8 +10,10 @@ import com.tnd.pw.development.feature.constants.FeatureIsComplete;
 import com.tnd.pw.development.feature.entity.FeatureEntity;
 import com.tnd.pw.development.feature.exception.FeatureNotFoundException;
 import com.tnd.pw.development.feature.service.FeatureService;
+import com.tnd.pw.development.release.constants.ReleaseType;
 import com.tnd.pw.development.release.entity.ReleaseEntity;
 import com.tnd.pw.development.release.exception.ReleaseNotFoundException;
+import com.tnd.pw.development.release.exception.UnableUpdateParkingLotException;
 import com.tnd.pw.development.release.service.ReleaseService;
 import com.tnd.pw.development.runner.exception.ActionServiceFailedException;
 import com.tnd.pw.development.runner.service.CalculateService;
@@ -47,12 +49,13 @@ public class DevHandlerServiceImpl implements DevHandlerService {
                             .goals(request.getGoals() != null ? String.valueOf(request.getGoals().get(0)) : null)
                             .initiatives(request.getInitiatives() != null ? String.valueOf(request.getInitiatives().get(0)) : null)
                             .productId(request.getProductId())
+                            .type(ReleaseType.NORMAL)
                             .build()
             );
             featureEntities = featureService.getFeature(
                     FeatureEntity.builder()
                             .goals(request.getGoals() != null ? String.valueOf(request.getGoals().get(0)) : null)
-                            .initiatives(request.getInitiatives() != null ? String.valueOf(request.getInitiatives().get(0)) : null)
+                            .initiativeId(request.getInitiativeId())
                             .productId(request.getProductId())
                             .build()
             );
@@ -63,7 +66,7 @@ public class DevHandlerServiceImpl implements DevHandlerService {
     }
 
     @Override
-    public CsDevRepresentation calculateFeature(DevRequest request) throws DBServiceException, FeatureNotFoundException, ReleaseNotFoundException, ActionServiceFailedException {
+    public CsDevRepresentation calculateFeature(DevRequest request) throws DBServiceException, FeatureNotFoundException, ReleaseNotFoundException, ActionServiceFailedException, UnableUpdateParkingLotException {
         Long featureId = request.getFeatureId();
         FeatureEntity featureEntity = featureService.getFeature(
                 FeatureEntity.builder()
@@ -71,12 +74,12 @@ public class DevHandlerServiceImpl implements DevHandlerService {
                         .build()
         ).get(0);
         List<TodoRepresentation> todoReps = sdkService.getTodo(Arrays.asList(featureId)).getTodoReps();
-        Integer process = 100;
+        Integer process = 0;
         if(todoReps != null) {
             List<TodoRepresentation> completedTodos = todoReps.stream()
                     .filter(todo -> todo.getState().equals(TodoState.COMPLETE.name()))
                     .collect(Collectors.toList());
-            process = completedTodos.size() / todoReps.size();
+            process = completedTodos.size() * 100 / todoReps.size();
         }
         featureEntity.setIsComplete(process == 100 ? FeatureIsComplete.TRUE : FeatureIsComplete.FALSE);
         featureEntity.setProcess(process);
@@ -84,5 +87,42 @@ public class DevHandlerServiceImpl implements DevHandlerService {
 
         calculateService.calculateRelease(featureEntity);
         return null;
+    }
+
+    @Override
+    public CsDevRepresentation statisticRelease(DevRequest request) throws DBServiceException {
+        List<ReleaseEntity> releaseEntities = new ArrayList<>();
+        List<FeatureEntity> featureEntities = new ArrayList<>();
+        try {
+            releaseEntities = releaseService.getRelease(
+                    ReleaseEntity.builder()
+                            .goals(request.getGoals() != null ? String.valueOf(request.getGoals().get(0)) : null)
+                            .initiatives(request.getInitiatives() != null ? String.valueOf(request.getInitiatives().get(0)) : null)
+                            .productId(request.getProductId())
+                            .type(ReleaseType.NORMAL)
+                            .build()
+            );
+        } catch (ReleaseNotFoundException e) {
+        }
+
+        return RepresentationBuilder.statisticDev(releaseEntities, featureEntities);
+    }
+
+    @Override
+    public CsDevRepresentation statisticFeature(DevRequest request) throws DBServiceException {
+        List<ReleaseEntity> releaseEntities = new ArrayList<>();
+        List<FeatureEntity> featureEntities = new ArrayList<>();
+        try {
+            featureEntities = featureService.getFeature(
+                    FeatureEntity.builder()
+                            .goals(request.getGoals() != null ? String.valueOf(request.getGoals().get(0)) : null)
+                            .initiativeId(request.getInitiativeId())
+                            .productId(request.getProductId())
+                            .build()
+            );
+        } catch (FeatureNotFoundException e) {
+        }
+
+        return RepresentationBuilder.statisticDev(releaseEntities, featureEntities);
     }
 }

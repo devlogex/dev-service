@@ -18,6 +18,8 @@ public class ReleaseLayoutEntity implements Serializable {
     private Long releaseId;
     @SerializedName("product_id")
     private Long productId;
+    @SerializedName("type")
+    private String type;
     @SerializedName("layout")
     private String layout;
 }

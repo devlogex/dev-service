@@ -1,12 +1,15 @@
 package com.tnd.pw.development.runner.service.impl;
 
+import com.google.common.reflect.TypeToken;
 import com.tnd.common.api.common.Utils.GenUID;
 import com.tnd.dbservice.common.exception.DBServiceException;
 import com.tnd.pw.action.common.representations.CsActionRepresentation;
-import com.tnd.pw.action.common.representations.TodoRepresentation;
+import com.tnd.pw.development.release.constants.ReleaseLayoutType;
+import com.tnd.pw.development.release.exception.*;
 import com.tnd.pw.development.runner.exception.ActionServiceFailedException;
+import com.tnd.pw.development.runner.exception.InvalidDataException;
+import com.tnd.pw.development.runner.service.CalculateService;
 import com.tnd.pw.development.runner.service.ReleaseHandlerService;
-import com.tnd.pw.action.todos.constants.TodoState;
 import com.tnd.pw.development.common.representations.CsDevRepresentation;
 import com.tnd.pw.development.common.representations.EpicRep;
 import com.tnd.pw.development.common.representations.ReleasePhaseRep;
@@ -24,9 +27,6 @@ import com.tnd.pw.development.release.entity.EpicEntity;
 import com.tnd.pw.development.release.entity.ReleaseEntity;
 import com.tnd.pw.development.release.entity.ReleaseLayoutEntity;
 import com.tnd.pw.development.release.entity.ReleasePhaseEntity;
-import com.tnd.pw.development.release.exception.EpicNotFoundException;
-import com.tnd.pw.development.release.exception.ReleaseNotFoundException;
-import com.tnd.pw.development.release.exception.ReleasePhaseNotFoundException;
 import com.tnd.pw.development.release.service.ReleaseService;
 import com.tnd.pw.report.common.constants.ReportAction;
 import org.slf4j.Logger;
@@ -35,6 +35,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -48,6 +49,8 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
     private FeatureService featureService;
     @Autowired
     private SdkService sdkService;
+    @Autowired
+    private CalculateService calculateService;
 
     @Override
     public CsDevRepresentation addRelease(DevRequest request) throws DBServiceException {
@@ -59,6 +62,7 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
                         .theme(request.getTheme())
                         .startOn(request.getStartOn())
                         .endOn(request.getEndOn())
+                        .releaseDate(request.getReleaseDate())
                         .createdBy(request.getPayload().getUserId())
                         .build()
         );
@@ -66,16 +70,52 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
             createDefaultPhases(release);
         }
 
+        sdkService.createHistory(request.getPayload().getUserId(), release.getId(), ReportAction.CREATED, GsonUtils.convertToString(release));
+
+        return getRelease(release.getProductId());
+    }
+
+    @Override
+    public CsDevRepresentation addParkingLot(DevRequest request) throws DBServiceException {
+        createParkingLotFeature(request);
+        createParkingLotEpic(request);
+        return getRelease(request.getProductId());
+    }
+
+    private void createParkingLotEpic(DevRequest request) throws DBServiceException {
+        ReleaseEntity release = releaseService.createParkingLotEpic(
+                ReleaseEntity.builder()
+                        .name("Parking Lot")
+                        .productId(request.getProductId())
+                        .build()
+        );
+
+
         releaseService.createReleaseLayout(
                 ReleaseLayoutEntity.builder()
                         .releaseId(release.getId())
                         .productId(release.getProductId())
+                        .type(ReleaseLayoutType.EPIC)
                         .layout(GsonUtils.convertToString(new ArrayList()))
                         .build());
+    }
 
-        sdkService.createHistory(request.getPayload().getUserId(), release.getId(), ReportAction.CREATED, GsonUtils.convertToString(release));
+    private void createParkingLotFeature(DevRequest request) throws DBServiceException {
+        ReleaseEntity release = releaseService.createParkingLotFeature(
+                ReleaseEntity.builder()
+                        .name("Parking Lot")
+                        .productId(request.getProductId())
+                        .build()
+        );
 
-        return getRelease(release.getProductId());
+
+        releaseService.createReleaseLayout(
+                ReleaseLayoutEntity.builder()
+                        .releaseId(release.getId())
+                        .productId(release.getProductId())
+                        .type(ReleaseLayoutType.FEATURE)
+                        .layout(GsonUtils.convertToString(new ArrayList()))
+                        .build());
     }
 
     @Override
@@ -84,8 +124,8 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
     }
 
     private CsDevRepresentation getRelease(Long productId) throws DBServiceException {
-        List<ReleaseEntity> releaseEntities = null;
-        List<FeatureEntity> features = null;
+        List<ReleaseEntity> releaseEntities = new ArrayList<>();
+        List<FeatureEntity> features = new ArrayList<>();
         try {
             releaseEntities = releaseService.getRelease(
                     ReleaseEntity.builder()
@@ -121,7 +161,7 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
     }
 
     @Override
-    public ReleaseRep updateRelease(DevRequest request) throws DBServiceException, ReleaseNotFoundException, ActionServiceFailedException {
+    public ReleaseRep updateRelease(DevRequest request) throws DBServiceException, ReleaseNotFoundException, ActionServiceFailedException, UnableUpdateParkingLotException {
         ReleaseEntity releaseEntity = releaseService.getRelease(ReleaseEntity.builder().id(request.getId()).build()).get(0);
         String oldRelease = GsonUtils.convertToString(releaseEntity);
 
@@ -181,6 +221,7 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
                         .build()
         ).get(0);
         releaseService.removeRelease(releaseEntity);
+        calculateService.updateUserStoryAfterRemoveRelease(releaseEntity.getId());
         return getRelease(releaseEntity.getProductId());
     }
 
@@ -282,14 +323,38 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
                         .description(request.getDescription())
                         .files(request.getFiles())
                         .createdBy(request.getPayload().getUserId())
+                        .startOn(request.getStartOn())
+                        .endOn(request.getEndOn())
                         .build()
         );
-        List<EpicEntity> epicEntities = releaseService.getEpic(
-                EpicEntity.builder()
-                        .productId(epic.getProductId())
-                        .build()
-        );
-        return RepresentationBuilder.buildListEpicRep(epicEntities);
+
+        List<Long> layout = null;
+        try {
+            ReleaseLayoutEntity releaseLayoutEntity = releaseService.getReleaseLayout(
+                    ReleaseLayoutEntity.builder()
+                            .releaseId(epic.getReleaseId())
+                            .type(ReleaseLayoutType.EPIC)
+                            .build()
+            ).get(0);
+            layout = GsonUtils.getGson().fromJson(releaseLayoutEntity.getLayout(), new TypeToken<ArrayList<Long>>(){}.getType());
+            layout.add(epic.getId());
+            releaseLayoutEntity.setLayout(GsonUtils.convertToString(layout));
+            releaseService.updateReleaseLayout(releaseLayoutEntity);
+        } catch (ReleaseLayoutNotFoundException e) {
+            layout = new ArrayList<>();
+            layout.add(epic.getId());
+            releaseService.createReleaseLayout(
+                    ReleaseLayoutEntity.builder()
+                            .releaseId(epic.getReleaseId())
+                            .productId(epic.getProductId())
+                            .type(ReleaseLayoutType.EPIC)
+                            .layout(GsonUtils.convertToString(layout))
+                            .build()
+            );
+        }
+
+        sdkService.createHistory(request.getPayload().getUserId(), epic.getId(), ReportAction.CREATED, GsonUtils.convertToString(epic));
+        return getEpic(productId);
     }
 
     @Override
@@ -301,16 +366,18 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
         ).get(0);
 
         CsActionRepresentation actionRep = sdkService.getTodoComment(epicEntity.getId());
+        sdkService.createWatcher(request.getPayload().getUserId(), epicEntity.getId());
         return RepresentationBuilder.buildEpicRep(epicEntity, actionRep);
     }
 
     @Override
-    public EpicRep updateEpic(DevRequest request) throws DBServiceException, EpicNotFoundException, ActionServiceFailedException {
+    public CsDevRepresentation updateEpic(DevRequest request) throws DBServiceException, EpicNotFoundException, ActionServiceFailedException, ReleaseLayoutNotFoundException {
         EpicEntity epicEntity = releaseService.getEpic(
                 EpicEntity.builder()
                         .id(request.getId())
                         .build()
         ).get(0);
+        EpicEntity oldEpic = epicEntity;
         if(request.getName() != null) {
             epicEntity.setName(request.getName());
         }
@@ -332,13 +399,42 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
         if(request.getFiles() != null) {
             epicEntity.setFiles(request.getFiles());
         }
-        if(request.getReleaseId() != null) {
+        if(request.getReleaseId() != null
+                && request.getReleaseId().compareTo(epicEntity.getReleaseId()) != 0) {
+            ReleaseLayoutEntity oldLayoutEntity = releaseService.getReleaseLayout(
+                    ReleaseLayoutEntity.builder()
+                            .releaseId(epicEntity.getReleaseId())
+                            .type(ReleaseLayoutType.EPIC)
+                            .build()
+            ).get(0);
+            ReleaseLayoutEntity newLayoutEntity = releaseService.getReleaseLayout(
+                    ReleaseLayoutEntity.builder()
+                            .releaseId(request.getReleaseId())
+                            .type(ReleaseLayoutType.EPIC)
+                            .build()
+            ).get(0);
+
+            List<Long> oldLayout = GsonUtils.getGson().fromJson(oldLayoutEntity.getLayout(), new TypeToken<ArrayList<Long>>(){}.getType());
+            List<Long> newLayout = GsonUtils.getGson().fromJson(newLayoutEntity.getLayout(), new TypeToken<ArrayList<Long>>(){}.getType());
+            oldLayout.remove(epicEntity.getId());
+            newLayout.add(epicEntity.getId());
+            oldLayoutEntity.setLayout(GsonUtils.convertToString(oldLayout));
+            newLayoutEntity.setLayout(GsonUtils.convertToString(newLayout));
+            releaseService.updateReleaseLayout(oldLayoutEntity);
+            releaseService.updateReleaseLayout(newLayoutEntity);
+
             epicEntity.setReleaseId(request.getReleaseId());
+        }
+        if(request.getStartOn() != null) {
+            epicEntity.setStartOn(request.getStartOn());
+        }
+        if(request.getEndOn() != null) {
+            epicEntity.setEndOn(request.getEndOn());
         }
 
         releaseService.updateEpic(epicEntity);
-        CsActionRepresentation actionRep = sdkService.getTodoComment(epicEntity.getId());
-        return RepresentationBuilder.buildEpicRep(epicEntity, actionRep);
+        sdkService.createHistory(request.getPayload().getUserId(), epicEntity.getId(), ReportAction.UPDATED, oldEpic + "|" + GsonUtils.convertToString(epicEntity));
+        return getEpic(epicEntity.getProductId());
     }
 
     @Override
@@ -349,20 +445,35 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
                         .build()
         ).get(0);
         releaseService.removeEpic(epicEntity);
+        calculateService.updateUserStoryAfterRemoveEpic(epicEntity.getId());
         return getEpic(epicEntity.getProductId());
     }
 
     private CsDevRepresentation getEpic(Long productId) throws DBServiceException {
-        List<EpicEntity> epicEntities = null;
+        List<ReleaseEntity> releaseEntities = new ArrayList<>();
+        List<EpicEntity> epicEntities = new ArrayList<>();
+        List<ReleaseLayoutEntity> releaseLayouts = new ArrayList<>();
         try {
+            releaseEntities = releaseService.getRelease(
+                    ReleaseEntity.builder()
+                            .productId(productId)
+                            .build()
+            );
             epicEntities = releaseService.getEpic(
                     EpicEntity.builder()
                             .productId(productId)
                             .build()
             );
-        } catch (EpicNotFoundException e) {
+            releaseLayouts = releaseService.getReleaseLayout(
+                    ReleaseLayoutEntity.builder()
+                            .productId(productId)
+                            .type(ReleaseLayoutType.EPIC)
+                            .build()
+            );
+
+        }catch (ReleaseNotFoundException | ReleaseLayoutNotFoundException | EpicNotFoundException e) {
         }
-        return RepresentationBuilder.buildListEpicRep(epicEntities);
+        return RepresentationBuilder.buildListEpicRep(epicEntities, releaseEntities, releaseLayouts);
     }
 
     @Override
@@ -375,6 +486,78 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
         return getReleasePhase(request.getId());
     }
 
+    @Override
+    public CsDevRepresentation updateEpicLayout(DevRequest request) throws DBServiceException, ReleaseLayoutNotFoundException, InvalidDataException {
+        ReleaseLayoutEntity releaseLayoutEntity = releaseService.getReleaseLayout(
+                ReleaseLayoutEntity.builder()
+                        .releaseId(request.getId())
+                        .type(ReleaseLayoutType.EPIC)
+                        .build()
+        ).get(0);
+        List<Long> layout = GsonUtils.getGson().fromJson(releaseLayoutEntity.getLayout(), new TypeToken<ArrayList<Long>>(){}.getType());
+
+        checkInputData(request.getLayout(), layout);
+
+        releaseLayoutEntity.setLayout(GsonUtils.convertToString(request.getLayout()));
+        releaseService.updateReleaseLayout(releaseLayoutEntity);
+        return getEpic(releaseLayoutEntity.getProductId());
+    }
+
+    @Override
+    public CsDevRepresentation updateEpicRelease(DevRequest request) throws DBServiceException, EpicNotFoundException, ReleaseLayoutNotFoundException, InvalidDataException {
+        EpicEntity epicEntity = releaseService.getEpic(
+                EpicEntity.builder()
+                        .id(request.getId())
+                        .build()
+        ).get(0);
+        ReleaseLayoutEntity oldLayoutEntityEpic = releaseService.getReleaseLayout(
+                ReleaseLayoutEntity.builder()
+                        .releaseId(epicEntity.getReleaseId())
+                        .type(ReleaseLayoutType.EPIC)
+                        .build()
+        ).get(0);
+        ReleaseLayoutEntity oldLayoutEntity = releaseService.getReleaseLayout(
+                ReleaseLayoutEntity.builder()
+                        .releaseId(request.getReleaseId())
+                        .type(ReleaseLayoutType.EPIC)
+                        .build()
+        ).get(0);
+        List<Long> oldLayoutFeature = GsonUtils.getGson().fromJson(oldLayoutEntityEpic.getLayout(), new TypeToken<ArrayList<Long>>(){}.getType());
+        List<Long> oldLayout = GsonUtils.getGson().fromJson(oldLayoutEntity.getLayout(), new TypeToken<ArrayList<Long>>(){}.getType());
+        List<Long> newLayout = request.getLayout();
+        checkInputData(oldLayout, newLayout, epicEntity.getId());
+
+        oldLayoutFeature.remove(epicEntity.getId());
+        oldLayoutEntityEpic.setLayout(GsonUtils.convertToString(oldLayoutFeature));
+        oldLayoutEntity.setLayout(GsonUtils.convertToString(newLayout));
+
+        releaseService.updateReleaseLayout(oldLayoutEntity);
+        releaseService.updateReleaseLayout(oldLayoutEntityEpic);
+        epicEntity.setReleaseId(request.getReleaseId());
+        releaseService.updateEpic(epicEntity);
+
+        return getEpic(epicEntity.getProductId());
+    }
+
+
+    private void checkInputData(List<Long> layout1, List<Long> layout2) throws InvalidDataException {
+        HashSet<Long> set = new HashSet<>();
+        set.addAll(layout1);
+        set.addAll(layout2);
+        if(set.size() != layout1.size() || set.size() != layout2.size()) {
+            throw new InvalidDataException("Layout Input Error !");
+        }
+    }
+
+    private void checkInputData(List<Long> oldLayout, List<Long> newLayout, Long id) throws InvalidDataException {
+        HashSet<Long> set = new HashSet<>();
+        oldLayout.add(id);
+        set.addAll(oldLayout);
+        set.addAll(newLayout);
+        if(set.size() != oldLayout.size() || set.size() != newLayout.size()) {
+            throw new InvalidDataException("Layout Input Error !");
+        }
+    }
 
     private void createDefaultPhases(ReleaseEntity release) throws DBServiceException {
         Calendar calendar = Calendar.getInstance();

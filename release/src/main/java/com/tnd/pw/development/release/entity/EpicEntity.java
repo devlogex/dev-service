@@ -21,6 +21,10 @@ public class EpicEntity implements Serializable {
     private String name;
     @SerializedName("state")
     private Integer state;
+    @SerializedName("start_on")
+    private Long startOn;
+    @SerializedName("end_on")
+    private Long endOn;
     @SerializedName("release_id")
     private Long releaseId;
     @SerializedName("assign_to")

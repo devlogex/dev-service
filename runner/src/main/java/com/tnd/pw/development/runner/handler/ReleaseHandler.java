@@ -5,7 +5,11 @@ import com.tnd.common.api.server.BaseHandler;
 import com.tnd.common.api.server.service.annotation.HandlerService;
 import com.tnd.common.api.server.service.annotation.HandlerServiceClass;
 import com.tnd.dbservice.common.exception.DBServiceException;
+import com.tnd.pw.development.common.constants.Methods;
+import com.tnd.pw.development.feature.exception.FeatureNotFoundException;
+import com.tnd.pw.development.release.exception.*;
 import com.tnd.pw.development.runner.exception.ActionServiceFailedException;
+import com.tnd.pw.development.runner.exception.InvalidDataException;
 import com.tnd.pw.development.runner.service.ReleaseHandlerService;
 import com.tnd.pw.development.common.representations.CsDevRepresentation;
 import com.tnd.pw.development.common.representations.EpicRep;
@@ -13,9 +17,6 @@ import com.tnd.pw.development.common.representations.ReleasePhaseRep;
 import com.tnd.pw.development.common.representations.ReleaseRep;
 import com.tnd.pw.development.common.requests.DevRequest;
 import com.tnd.pw.development.common.utils.GsonUtils;
-import com.tnd.pw.development.release.exception.EpicNotFoundException;
-import com.tnd.pw.development.release.exception.ReleaseNotFoundException;
-import com.tnd.pw.development.release.exception.ReleasePhaseNotFoundException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +33,14 @@ public class ReleaseHandler implements BaseHandler {
         LOGGER.info("[ReleaseHandler] addRelease() - request: {}", GsonUtils.convertToString(request));
         CsDevRepresentation response = releaseHandlerService.addRelease(request);
         LOGGER.info("[ReleaseHandler] addRelease() - response: {}", GsonUtils.convertToString(response));
+        return new BaseResponse<>(response);
+    }
+
+    @HandlerService(method = Methods.GENERATE_PARKING_LOT)
+    public BaseResponse<CsDevRepresentation> createParkingLot(DevRequest request) throws DBServiceException, ReleaseNotFoundException {
+        LOGGER.info("[ReleaseHandler] createParkingLot() - request: {}", GsonUtils.convertToString(request));
+        CsDevRepresentation response = releaseHandlerService.addParkingLot(request);
+        LOGGER.info("[ReleaseHandler] createParkingLot() - response: {}", GsonUtils.convertToString(response));
         return new BaseResponse<>(response);
     }
 
@@ -52,7 +61,7 @@ public class ReleaseHandler implements BaseHandler {
     }
 
     @HandlerService(path = "/development/release/update", protocol = "POST")
-    public BaseResponse<ReleaseRep> updateRelease(DevRequest request) throws DBServiceException, ReleaseNotFoundException, ActionServiceFailedException {
+    public BaseResponse<ReleaseRep> updateRelease(DevRequest request) throws DBServiceException, ReleaseNotFoundException, ActionServiceFailedException, UnableUpdateParkingLotException {
         LOGGER.info("[ReleaseHandler] updateRelease() - request: {}", GsonUtils.convertToString(request));
         ReleaseRep response = releaseHandlerService.updateRelease(request);
         LOGGER.info("[ReleaseHandler] updateRelease() - response: {}", GsonUtils.convertToString(response));
@@ -132,9 +141,9 @@ public class ReleaseHandler implements BaseHandler {
     }
 
     @HandlerService(path = "/development/release/epic/update", protocol = "POST")
-    public BaseResponse<EpicRep> updateEpic(DevRequest request) throws DBServiceException, EpicNotFoundException, ActionServiceFailedException {
+    public BaseResponse<CsDevRepresentation> updateEpic(DevRequest request) throws DBServiceException, EpicNotFoundException, ActionServiceFailedException, ReleaseLayoutNotFoundException {
         LOGGER.info("[ReleaseHandler] updateEpic() - request: {}", GsonUtils.convertToString(request));
-        EpicRep response = releaseHandlerService.updateEpic(request);
+        CsDevRepresentation response = releaseHandlerService.updateEpic(request);
         LOGGER.info("[ReleaseHandler] updateEpic() - response: {}", GsonUtils.convertToString(response));
         return new BaseResponse<>(response);
     }
@@ -144,6 +153,22 @@ public class ReleaseHandler implements BaseHandler {
         LOGGER.info("[ReleaseHandler] removeEpic() - request: {}", GsonUtils.convertToString(request));
         CsDevRepresentation response = releaseHandlerService.removeEpic(request);
         LOGGER.info("[ReleaseHandler] removeEpic() - response: {}", GsonUtils.convertToString(response));
+        return new BaseResponse<>(response);
+    }
+
+    @HandlerService(path = "/development/release/epic/layout/update", protocol = "POST")
+    public BaseResponse<CsDevRepresentation> updateEpicLayout(DevRequest request) throws DBServiceException, InvalidDataException, ReleaseLayoutNotFoundException {
+        LOGGER.info("[FeatureHandler] updateEpicLayout() - request: {}", GsonUtils.convertToString(request));
+        CsDevRepresentation response = releaseHandlerService.updateEpicLayout(request);
+        LOGGER.info("[FeatureHandler] updateEpicLayout() - response: {}", GsonUtils.convertToString(response));
+        return new BaseResponse<>(response);
+    }
+
+    @HandlerService(path = "/development/release/epic/drap+drop/update", protocol = "POST")
+    public BaseResponse<CsDevRepresentation> updateEpicRelease(DevRequest request) throws ReleaseLayoutNotFoundException, InvalidDataException, DBServiceException, EpicNotFoundException {
+        LOGGER.info("[FeatureHandler] updateEpicRelease() - request: {}", GsonUtils.convertToString(request));
+        CsDevRepresentation response = releaseHandlerService.updateEpicRelease(request);
+        LOGGER.info("[FeatureHandler] updateEpicRelease() - response: {}", GsonUtils.convertToString(response));
         return new BaseResponse<>(response);
     }
 }

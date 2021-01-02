@@ -12,6 +12,7 @@ import com.tnd.pw.development.common.requests.DevRequest;
 import com.tnd.pw.development.common.utils.GsonUtils;
 import com.tnd.pw.development.feature.exception.FeatureNotFoundException;
 import com.tnd.pw.development.release.exception.ReleaseNotFoundException;
+import com.tnd.pw.development.release.exception.UnableUpdateParkingLotException;
 import com.tnd.pw.development.runner.exception.ActionServiceFailedException;
 import com.tnd.pw.development.runner.service.DevHandlerService;
 import org.slf4j.Logger;
@@ -41,7 +42,7 @@ public class DevHandler implements BaseHandler {
     }
 
     @HandlerService(method = Methods.CALCULATE_DEV)
-    public BaseResponse<CsDevRepresentation> calculateDev(DevRequest request) throws DBServiceException, ReleaseNotFoundException, FeatureNotFoundException, ActionServiceFailedException {
+    public BaseResponse<CsDevRepresentation> calculateDev(DevRequest request) throws DBServiceException, ReleaseNotFoundException, FeatureNotFoundException, ActionServiceFailedException, UnableUpdateParkingLotException {
         LOGGER.info("[DevHandler] calculateDev() - request: {}", GsonUtils.convertToString(request));
         CsDevRepresentation response = devHandlerService.calculateFeature(request);
         LOGGER.info("[DevHandler] calculateDev() - response: {}", GsonUtils.convertToString(response));
@@ -58,6 +59,26 @@ public class DevHandler implements BaseHandler {
         return new BaseResponse<>(response);
     }
 
+    @HandlerService(path = "/development/statistic/release/goal", protocol = "GET")
+    public BaseResponse<CsDevRepresentation> statisticReleaseByGoal(DevRequest request) throws DBServiceException, ReleaseNotFoundException {
+        LOGGER.info("[DevHandler] statisticReleaseByGoal() - request: {}", GsonUtils.convertToString(request));
+        request.setGoals(Arrays.asList(request.getId()));
+        request.setId(null);
+        CsDevRepresentation response = devHandlerService.statisticRelease(request);
+        LOGGER.info("[DevHandler] statisticReleaseByGoal() - response: {}", GsonUtils.convertToString(response));
+        return new BaseResponse<>(response);
+    }
+
+    @HandlerService(path = "/development/statistic/feature/goal", protocol = "GET")
+    public BaseResponse<CsDevRepresentation> statisticFeatureByGoal(DevRequest request) throws DBServiceException, ReleaseNotFoundException {
+        LOGGER.info("[DevHandler] statisticFeatureByGoal() - request: {}", GsonUtils.convertToString(request));
+        request.setGoals(Arrays.asList(request.getId()));
+        request.setId(null);
+        CsDevRepresentation response = devHandlerService.statisticFeature(request);
+        LOGGER.info("[DevHandler] statisticFeatureByGoal() - response: {}", GsonUtils.convertToString(response));
+        return new BaseResponse<>(response);
+    }
+
     @HandlerService(path = "/development/statistic/initiative", protocol = "GET")
     public BaseResponse<CsDevRepresentation> statisticDevByInitiative(DevRequest request) throws DBServiceException, ReleaseNotFoundException {
         LOGGER.info("[DevHandler] statisticDevByInitiative() - request: {}", GsonUtils.convertToString(request));
@@ -65,6 +86,26 @@ public class DevHandler implements BaseHandler {
         request.setId(null);
         CsDevRepresentation response = devHandlerService.statisticDev(request);
         LOGGER.info("[DevHandler] statisticDevByInitiative() - response: {}", GsonUtils.convertToString(response));
+        return new BaseResponse<>(response);
+    }
+
+    @HandlerService(path = "/development/statistic/release/initiative", protocol = "GET")
+    public BaseResponse<CsDevRepresentation> statisticReleaseByInitiative(DevRequest request) throws DBServiceException, ReleaseNotFoundException {
+        LOGGER.info("[DevHandler] statisticReleaseByInitiative() - request: {}", GsonUtils.convertToString(request));
+        request.setInitiatives(Arrays.asList(request.getId()));
+        request.setId(null);
+        CsDevRepresentation response = devHandlerService.statisticRelease(request);
+        LOGGER.info("[DevHandler] statisticReleaseByInitiative() - response: {}", GsonUtils.convertToString(response));
+        return new BaseResponse<>(response);
+    }
+
+    @HandlerService(path = "/development/statistic/feature/initiative", protocol = "GET")
+    public BaseResponse<CsDevRepresentation> statisticFeatureByInitiative(DevRequest request) throws DBServiceException, ReleaseNotFoundException {
+        LOGGER.info("[DevHandler] statisticFeatureByInitiative() - request: {}", GsonUtils.convertToString(request));
+        request.setInitiativeId(request.getId());
+        request.setId(null);
+        CsDevRepresentation response = devHandlerService.statisticFeature(request);
+        LOGGER.info("[DevHandler] statisticFeatureByInitiative() - response: {}", GsonUtils.convertToString(response));
         return new BaseResponse<>(response);
     }
 

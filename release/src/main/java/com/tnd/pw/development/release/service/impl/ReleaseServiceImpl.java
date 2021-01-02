@@ -4,6 +4,7 @@ import com.tnd.common.api.common.Utils.GenUID;
 import com.tnd.dbservice.common.exception.DBServiceException;
 import com.tnd.pw.development.release.constants.EpicState;
 import com.tnd.pw.development.release.constants.ReleaseState;
+import com.tnd.pw.development.release.constants.ReleaseType;
 import com.tnd.pw.development.release.dao.EpicDao;
 import com.tnd.pw.development.release.dao.ReleaseDao;
 import com.tnd.pw.development.release.dao.ReleaseLayoutDao;
@@ -12,14 +13,10 @@ import com.tnd.pw.development.release.entity.EpicEntity;
 import com.tnd.pw.development.release.entity.ReleaseEntity;
 import com.tnd.pw.development.release.entity.ReleaseLayoutEntity;
 import com.tnd.pw.development.release.entity.ReleasePhaseEntity;
-import com.tnd.pw.development.release.exception.EpicNotFoundException;
-import com.tnd.pw.development.release.exception.ReleaseLayoutNotFoundException;
-import com.tnd.pw.development.release.exception.ReleaseNotFoundException;
-import com.tnd.pw.development.release.exception.ReleasePhaseNotFoundException;
+import com.tnd.pw.development.release.exception.*;
 import com.tnd.pw.development.release.service.ReleaseService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
 import java.util.List;
 
 public class ReleaseServiceImpl implements ReleaseService {
@@ -38,6 +35,25 @@ public class ReleaseServiceImpl implements ReleaseService {
         entity.setCreatedAt(System.currentTimeMillis());
         entity.setState(ReleaseState.UNDER_CONSIDERATION.ordinal());
         entity.setTheme(entity.getTheme() != null ? entity.getTheme() : "");
+        entity.setType(ReleaseType.NORMAL);
+        releaseDao.create(entity);
+        return entity;
+    }
+
+    @Override
+    public ReleaseEntity createParkingLotFeature(ReleaseEntity entity) throws DBServiceException {
+        entity.setId(GenUID.genIdByProduct(entity.getProductId()));
+        entity.setType(ReleaseType.PARKING_LOT_FEATURE);
+        entity.setState(ReleaseState.IN_DEVELOPMENT.ordinal());
+        releaseDao.create(entity);
+        return entity;
+    }
+
+    @Override
+    public ReleaseEntity createParkingLotEpic(ReleaseEntity entity) throws DBServiceException {
+        entity.setId(GenUID.genIdByProduct(entity.getProductId()));
+        entity.setType(ReleaseType.PARKING_LOT_EPIC);
+        entity.setState(ReleaseState.IN_DEVELOPMENT.ordinal());
         releaseDao.create(entity);
         return entity;
     }
@@ -48,7 +64,15 @@ public class ReleaseServiceImpl implements ReleaseService {
     }
 
     @Override
-    public void updateRelease(ReleaseEntity entity) throws DBServiceException {
+    public List<ReleaseEntity> getRelease(List<Long> releaseIds) throws DBServiceException, ReleaseNotFoundException {
+        return releaseDao.get(releaseIds);
+    }
+
+    @Override
+    public void updateRelease(ReleaseEntity entity) throws DBServiceException, UnableUpdateParkingLotException {
+        if(!ReleaseType.NORMAL.equals(entity.getType())) {
+            throw new UnableUpdateParkingLotException();
+        }
         releaseDao.update(entity);
     }
 
@@ -95,6 +119,11 @@ public class ReleaseServiceImpl implements ReleaseService {
     @Override
     public List<EpicEntity> getEpic(EpicEntity entity) throws DBServiceException, EpicNotFoundException {
         return epicDao.get(entity);
+    }
+
+    @Override
+    public List<EpicEntity> getEpic(List<Long> epicIds) throws DBServiceException, EpicNotFoundException {
+        return epicDao.get(epicIds);
     }
 
     @Override

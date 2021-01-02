@@ -8,4 +8,6 @@ public interface DevServiceSdkClient {
     BaseResponse<CsDevRepresentation> statisticDevByInitiative(Long initiativeId);
     BaseResponse<CsDevRepresentation> statisticDevByProduct(Long productId);
     BaseResponse<CsDevRepresentation> calculateDev(Long featureId);
+
+    BaseResponse<CsDevRepresentation> generateParkingLot(Long productId);
 }

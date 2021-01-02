@@ -2,6 +2,10 @@ package com.tnd.pw.development.common.requests;
 
 import com.google.gson.annotations.SerializedName;
 import com.tnd.common.api.common.base.authens.ProductTokenRequest;
+import com.tnd.pw.development.feature.entity.UTEpic;
+import com.tnd.pw.development.feature.entity.UTRelease;
+import com.tnd.pw.development.feature.entity.UTStep;
+import com.tnd.pw.development.release.entity.EpicEntity;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -19,6 +23,8 @@ public class DevRequest extends ProductTokenRequest {
     private Long owner;
     @SerializedName("initiatives")
     private List<Long> initiatives;
+    @SerializedName("initiative_id")
+    private Long initiativeId;
     @SerializedName("release_id")
     private Long releaseId;
     @SerializedName("goals")
@@ -65,4 +71,14 @@ public class DevRequest extends ProductTokenRequest {
     @SerializedName("content")
     private String content;
 
+    @SerializedName("steps")
+    private List<UTStep> steps;
+    @SerializedName("epics")
+    private List<UTEpic> epics;
+    @SerializedName("releases")
+    private List<UTRelease> releases;
+    @SerializedName("length")
+    private Integer length;
+    @SerializedName("personas")
+    private List<Long> personas;
 }

@@ -28,11 +28,11 @@ public class FeatureDaoImpl implements FeatureDao {
     private static final String SQL_SELECT_BY_GOAL_ID =
             "SELECT * FROM feature WHERE goals LIKE '%%%s%%' ORDER BY created_at";
     private static final String SQL_SELECT_BY_INITIATIVE_ID =
-            "SELECT * FROM feature WHERE initiatives LIKE '%%%s%%' ORDER BY created_at";
+            "SELECT * FROM feature WHERE initiative_id = %d ORDER BY created_at";
     private static final String SQL_SELECT_BY_RELEASE_ID =
             "SELECT * FROM feature WHERE release_id = %d ORDER BY created_at";
     private static final String SQL_UPDATE =
-                "UPDATE feature SET name = '%s', state = %d, release_id = %d, initiatives = '%s', goals = '%s', " +
+                "UPDATE feature SET name = '%s', state = %d, release_id = %d, initiative_id = %d, goals = '%s', " +
                         "assign_to = %d, epic_id = %d, requirements = '%s', description = '%s', files = '%s', start_on = %d, " +
                         "end_on = %d, process = %d, is_complete = %d " +
                         "WHERE id = %d";
@@ -59,8 +59,8 @@ public class FeatureDaoImpl implements FeatureDao {
         else if(entity.getGoals() != null) {
             query = String.format(SQL_SELECT_BY_GOAL_ID, entity.getGoals());
         }
-        else if(entity.getInitiatives() != null) {
-            query = String.format(SQL_SELECT_BY_INITIATIVE_ID, entity.getInitiatives());
+        else if(entity.getInitiativeId() != null) {
+            query = String.format(SQL_SELECT_BY_INITIATIVE_ID, entity.getInitiativeId());
         }
         else if(entity.getReleaseId() != null){
             query = String.format(SQL_SELECT_BY_RELEASE_ID, entity.getReleaseId());
@@ -90,7 +90,7 @@ public class FeatureDaoImpl implements FeatureDao {
     @Override
     public void update(FeatureEntity entity) throws DBServiceException {
         String query = String.format(SQL_UPDATE, entity.getName(), entity.getState(),entity.getReleaseId(),
-                entity.getInitiatives(),entity.getGoals(), entity.getAssignTo(), entity.getEpicId(),
+                entity.getInitiativeId(),entity.getGoals(), entity.getAssignTo(), entity.getEpicId(),
                 entity.getRequirements(), entity.getDescription(), entity.getFiles(), entity.getStartOn(),
                 entity.getEndOn(), entity.getProcess(), entity.getIsComplete(),
                 entity.getId());

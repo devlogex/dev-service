@@ -26,6 +26,10 @@ public class EpicRep implements Serializable {
     private String name;
     @SerializedName("state")
     private String state;
+    @SerializedName("start_on")
+    private Long startOn;
+    @SerializedName("end_on")
+    private Long endOn;
     @SerializedName("release_id")
     private Long releaseId;
     @SerializedName("assign_to")

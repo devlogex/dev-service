@@ -61,6 +61,9 @@ public class ReleaseRep implements Serializable {
     @SerializedName("list_features")
     private List<FeatureRep> featureReps;
 
+    @SerializedName("list_epics")
+    private List<EpicRep> epicReps;
+
     @SerializedName("release_phases")
     private List<ReleasePhaseRep> releasePhaseReps;
 

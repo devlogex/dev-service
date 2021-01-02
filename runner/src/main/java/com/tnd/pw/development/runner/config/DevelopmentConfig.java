@@ -2,6 +2,8 @@ package com.tnd.pw.development.runner.config;
 
 import com.tnd.dbservice.sdk.api.DBServiceSdkClient;
 import com.tnd.dbservice.sdk.api.impl.DBServiceSdkClientImpl;
+import com.tnd.pw.development.feature.dao.UserStoryDao;
+import com.tnd.pw.development.feature.dao.impl.UserStoryDaoImpl;
 import com.tnd.pw.development.idea.dao.IdeaDao;
 import com.tnd.pw.development.idea.dao.impl.IdeaDaoImpl;
 import com.tnd.pw.development.idea.service.IdeaService;
@@ -117,6 +119,11 @@ public class DevelopmentConfig {
     @Bean
     public IdeaDao ideaDao() {
         return new IdeaDaoImpl();
+    }
+
+    @Bean
+    public UserStoryDao userStoryDao() {
+        return new UserStoryDaoImpl();
     }
 
     @Bean

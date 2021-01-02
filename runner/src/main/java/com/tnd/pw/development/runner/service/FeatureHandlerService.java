@@ -1,6 +1,7 @@
 package com.tnd.pw.development.runner.service;
 
 import com.tnd.dbservice.common.exception.DBServiceException;
+import com.tnd.pw.development.feature.exception.UserStoryNotFoundException;
 import com.tnd.pw.development.runner.exception.ActionServiceFailedException;
 import com.tnd.pw.development.runner.exception.InvalidDataException;
 import com.tnd.pw.development.common.representations.CsDevRepresentation;
@@ -37,4 +38,13 @@ public interface FeatureHandlerService {
 
     CsDevRepresentation removeRequirement(DevRequest request) throws DBServiceException, RequirementNotFoundException;
 
+    CsDevRepresentation addUserStory(DevRequest request) throws DBServiceException;
+
+    CsDevRepresentation getUserStory(DevRequest request) throws DBServiceException;
+
+    CsDevRepresentation getUserStoryInfo(DevRequest request) throws DBServiceException;
+
+    CsDevRepresentation updateUserStory(DevRequest request) throws DBServiceException, UserStoryNotFoundException, InvalidDataException;
+
+    CsDevRepresentation removeUserStory(DevRequest request) throws DBServiceException, UserStoryNotFoundException;
 }

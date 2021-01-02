@@ -47,6 +47,8 @@ public class ReleaseEntity implements Serializable {
     private String theme;
     @SerializedName("files")
     private String files;
+    @SerializedName("type")
+    private String type;
     @SerializedName("created_at")
     private Long createdAt;
     @SerializedName("created_by")

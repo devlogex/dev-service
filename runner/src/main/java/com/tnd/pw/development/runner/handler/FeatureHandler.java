@@ -5,6 +5,7 @@ import com.tnd.common.api.server.BaseHandler;
 import com.tnd.common.api.server.service.annotation.HandlerService;
 import com.tnd.common.api.server.service.annotation.HandlerServiceClass;
 import com.tnd.dbservice.common.exception.DBServiceException;
+import com.tnd.pw.development.feature.exception.UserStoryNotFoundException;
 import com.tnd.pw.development.runner.exception.ActionServiceFailedException;
 import com.tnd.pw.development.runner.exception.InvalidDataException;
 import com.tnd.pw.development.runner.service.FeatureHandlerService;
@@ -124,4 +125,45 @@ public class FeatureHandler implements BaseHandler {
         LOGGER.info("[FeatureHandler] removeRequirement() - response: {}", GsonUtils.convertToString(response));
         return new BaseResponse<>(response);
     }
+
+    @HandlerService(path = "/development/user_story/add", protocol = "POST")
+    public BaseResponse<CsDevRepresentation> addUserStory(DevRequest request) throws DBServiceException {
+        LOGGER.info("[FeatureHandler] addUserStory() - request: {}", GsonUtils.convertToString(request));
+        CsDevRepresentation response = featureHandlerService.addUserStory(request);
+        LOGGER.info("[FeatureHandler] addUserStory() - response: {}", GsonUtils.convertToString(response));
+        return new BaseResponse<>(response);
+    }
+
+    @HandlerService(path = "/development/user_story", protocol = "GET")
+    public BaseResponse<CsDevRepresentation> getUserStory(DevRequest request) throws DBServiceException {
+        LOGGER.info("[FeatureHandler] getUserStory() - request: {}", GsonUtils.convertToString(request));
+        CsDevRepresentation response = featureHandlerService.getUserStory(request);
+        LOGGER.info("[FeatureHandler] getUserStory() - response: {}", GsonUtils.convertToString(response));
+        return new BaseResponse<>(response);
+    }
+
+    @HandlerService(path = "/development/user_story/info", protocol = "GET")
+    public BaseResponse<CsDevRepresentation> getUserStoryInfo(DevRequest request) throws DBServiceException {
+        LOGGER.info("[FeatureHandler] getUserStoryInfo() - request: {}", GsonUtils.convertToString(request));
+        CsDevRepresentation response = featureHandlerService.getUserStoryInfo(request);
+        LOGGER.info("[FeatureHandler] getUserStoryInfo() - response: {}", GsonUtils.convertToString(response));
+        return new BaseResponse<>(response);
+    }
+
+    @HandlerService(path = "/development/user_story/update", protocol = "POST")
+    public BaseResponse<CsDevRepresentation> updateUserStory(DevRequest request) throws DBServiceException, UserStoryNotFoundException, InvalidDataException {
+        LOGGER.info("[FeatureHandler] updateUserStory() - request: {}", GsonUtils.convertToString(request));
+        CsDevRepresentation response = featureHandlerService.updateUserStory(request);
+        LOGGER.info("[FeatureHandler] updateUserStory() - response: {}", GsonUtils.convertToString(response));
+        return new BaseResponse<>(response);
+    }
+
+    @HandlerService(path = "/development/user_story/remove", protocol = "POST")
+    public BaseResponse<CsDevRepresentation> removeUserStory(DevRequest request) throws UserStoryNotFoundException, DBServiceException {
+        LOGGER.info("[FeatureHandler] removeUserStory() - request: {}", GsonUtils.convertToString(request));
+        CsDevRepresentation response = featureHandlerService.removeUserStory(request);
+        LOGGER.info("[FeatureHandler] removeUserStory() - response: {}", GsonUtils.convertToString(response));
+        return new BaseResponse<>(response);
+    }
+
 }

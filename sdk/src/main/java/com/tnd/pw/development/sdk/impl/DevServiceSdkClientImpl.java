@@ -25,7 +25,7 @@ public class DevServiceSdkClientImpl extends AbstractService implements DevServi
     @Override
     public BaseResponse<CsDevRepresentation> statisticDevByInitiative(Long initiativeId) {
         DevRequest request = new DevRequest();
-        request.setInitiatives(Arrays.asList(initiativeId));
+        request.setInitiativeId(initiativeId);
         return client.sendRequest(Methods.STATISTIC_DEV, request);
     }
 
@@ -41,5 +41,12 @@ public class DevServiceSdkClientImpl extends AbstractService implements DevServi
         DevRequest request = new DevRequest();
         request.setFeatureId(featureId);
         return client.sendRequest(Methods.CALCULATE_DEV, request);
+    }
+
+    @Override
+    public BaseResponse<CsDevRepresentation> generateParkingLot(Long productId) {
+        DevRequest request = new DevRequest();
+        request.setProductId(productId);
+        return client.sendRequest(Methods.GENERATE_PARKING_LOT, request);
     }
 }

@@ -2,48 +2,51 @@ package com.tnd.pw.development.common.utils;
 
 import com.google.common.reflect.TypeToken;
 import com.tnd.pw.action.common.representations.CsActionRepresentation;
-import com.tnd.pw.action.todos.constants.TodoState;
 import com.tnd.pw.development.common.representations.*;
-import com.tnd.pw.development.feature.constants.FeatureIsComplete;
-import com.tnd.pw.development.feature.constants.FeatureState;
-import com.tnd.pw.development.feature.constants.FeatureType;
-import com.tnd.pw.development.feature.constants.RequirementState;
-import com.tnd.pw.development.feature.entity.FeatureEntity;
-import com.tnd.pw.development.feature.entity.RequirementEntity;
+import com.tnd.pw.development.feature.constants.*;
+import com.tnd.pw.development.feature.entity.*;
 import com.tnd.pw.development.idea.constants.IdeaState;
 import com.tnd.pw.development.idea.entity.IdeaEntity;
 import com.tnd.pw.development.release.constants.EpicState;
 import com.tnd.pw.development.release.constants.PhaseType;
 import com.tnd.pw.development.release.constants.ReleaseState;
+import com.tnd.pw.development.release.constants.ReleaseType;
 import com.tnd.pw.development.release.entity.EpicEntity;
 import com.tnd.pw.development.release.entity.ReleaseEntity;
 import com.tnd.pw.development.release.entity.ReleaseLayoutEntity;
 import com.tnd.pw.development.release.entity.ReleasePhaseEntity;
 import org.springframework.util.CollectionUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class RepresentationBuilder {
 
     public static CsDevRepresentation buildListReleaseRep(List<ReleaseEntity> releaseEntities, List<FeatureEntity> featureEntities) {
         List<ReleaseRep> releaseReps = new ArrayList<>();
-        if(releaseEntities == null)
-            releaseEntities = new ArrayList<>();
-        if(featureEntities == null) {
-            featureEntities = new ArrayList<>();
-        }
+        ReleaseRep parkingLotFeature = new ReleaseRep();
+        ReleaseRep parkingLotEpic = new ReleaseRep();
+
         for (ReleaseEntity releaseEntity : releaseEntities) {
-            List<FeatureEntity> featureOfRelease = featureEntities.stream().filter(feature -> feature.getReleaseId().compareTo(releaseEntity.getId())==0).collect(Collectors.toList());
-            ReleaseRep releaseRep = buildReleaseRep(releaseEntity, null, null);
-            releaseRep.setFeatureReps(buildListFeatureRep(featureOfRelease));
-            releaseReps.add(releaseRep);
+            if(ReleaseType.NORMAL.equals(releaseEntity.getType())) {
+                List<FeatureEntity> featureOfRelease = featureEntities.stream().filter(feature -> feature.getReleaseId().compareTo(releaseEntity.getId()) == 0).collect(Collectors.toList());
+                ReleaseRep releaseRep = buildReleaseRep(releaseEntity, null, null);
+                releaseRep.setFeatureReps(buildListFeatureRep(featureOfRelease));
+                releaseReps.add(releaseRep);
+            } else if (ReleaseType.PARKING_LOT_FEATURE.equals(releaseEntity.getType())) {
+                parkingLotFeature.setId(releaseEntity.getId());
+                parkingLotFeature.setName(releaseEntity.getName());
+                parkingLotFeature.setProductId(releaseEntity.getProductId());
+            } else if (ReleaseType.PARKING_LOT_EPIC.equals(releaseEntity.getType())) {
+                parkingLotEpic.setId(releaseEntity.getId());
+                parkingLotEpic.setName(releaseEntity.getName());
+                parkingLotEpic.setProductId(releaseEntity.getProductId());
+            }
         }
         CsDevRepresentation representation = new CsDevRepresentation();
         representation.setReleaseReps(releaseReps);
+        representation.setParkingLotFeature(parkingLotFeature);
+        representation.setParkingLotEpic(parkingLotEpic);
         return representation;
     }
 
@@ -124,16 +127,50 @@ public class RepresentationBuilder {
         return representation;
     }
 
-    public static CsDevRepresentation buildListEpicRep(List<EpicEntity> epicEntities) {
-        List<EpicRep> epicReps = new ArrayList<>();
-        if(epicEntities != null) {
-            for (EpicEntity epicEntity : epicEntities) {
-                epicReps.add(buildEpicRep(epicEntity, null));
+    public static CsDevRepresentation buildListEpicRep(List<EpicEntity> epicEntities, List<ReleaseEntity> releaseEntities, List<ReleaseLayoutEntity> releaseLayouts) {
+        LinkedHashMap<String, List<EpicRep>> epicReps = new LinkedHashMap<>();
+        ReleaseRep parkingLotEpic = new ReleaseRep();
+
+        for(ReleaseEntity releaseEntity: releaseEntities) {
+            if(ReleaseType.NORMAL.equals(releaseEntity.getType())) {
+                ReleaseRep releaseRep = new ReleaseRep();
+                releaseRep.setId(releaseEntity.getId());
+                releaseRep.setName(releaseEntity.getName());
+                releaseRep.setCreatedAt(releaseEntity.getCreatedAt());
+                List<EpicRep> epicRepList = buildListEpicOfRelease(releaseEntity, epicEntities, releaseLayouts);
+
+                epicReps.put(GsonUtils.convertToString(releaseRep), epicRepList);
+            }
+            else if(ReleaseType.PARKING_LOT_EPIC.equals(releaseEntity.getType())) {
+                parkingLotEpic = buildParkingLotRep(releaseEntity, null, epicEntities, releaseLayouts);
             }
         }
+
         CsDevRepresentation representation = new CsDevRepresentation();
-        representation.setEpicReps(epicReps);
+        representation.setMapEpicReps(epicReps);
+        representation.setParkingLotEpic(parkingLotEpic);
         return representation;
+    }
+
+    private static List<EpicRep> buildListEpicOfRelease(ReleaseEntity releaseEntity, List<EpicEntity> epicEntities, List<ReleaseLayoutEntity> releaseLayouts) {
+        List<EpicRep> epicReps = new ArrayList<>();
+        if(CollectionUtils.isEmpty(epicEntities)) {
+            return epicReps;
+        }
+        List<ReleaseLayoutEntity> layoutEntities = releaseLayouts.stream().filter(layout -> layout.getReleaseId().compareTo(releaseEntity.getId()) == 0).collect(Collectors.toList());
+        if (layoutEntities.size() > 0) {
+            ReleaseLayoutEntity releaseLayoutEntity = layoutEntities.get(0);
+            List<Long> layout = GsonUtils.getGson().fromJson(releaseLayoutEntity.getLayout(), new TypeToken<ArrayList<Long>>() {
+            }.getType());
+
+            for (Long epicId : layout) {
+                List<EpicEntity> epicList = epicEntities.stream().filter(epic -> epic.getId().compareTo(epicId) == 0).collect(Collectors.toList());
+                if (!CollectionUtils.isEmpty(epicList)) {
+                    epicReps.add(buildEpicRep(epicList.get(0), null));
+                }
+            }
+        }
+        return epicReps;
     }
 
     public static EpicRep buildEpicRep(EpicEntity epicEntity, CsActionRepresentation actionRep) {
@@ -141,12 +178,14 @@ public class RepresentationBuilder {
         epicRep.setId(epicEntity.getId());
         epicRep.setName(epicEntity.getName());
         epicRep.setProductId(epicEntity.getProductId());
+        epicRep.setStartOn(epicEntity.getStartOn());
+        epicRep.setEndOn(epicEntity.getEndOn());
+        epicRep.setState(EpicState.values()[epicEntity.getState()].name());
 
         if(actionRep != null) {
             epicRep.setTodoReps(actionRep.getTodoReps());
             epicRep.setCommentReps(actionRep.getCommentReps());
 
-            epicRep.setState(EpicState.values()[epicEntity.getState()].name());
             epicRep.setReleaseId(epicEntity.getReleaseId());
             epicRep.setDescription(epicEntity.getDescription());
             epicRep.setFiles(epicEntity.getFiles());
@@ -162,42 +201,60 @@ public class RepresentationBuilder {
     }
 
     public static CsDevRepresentation buildListFeatureRep(List<FeatureEntity> featureEntities, List<ReleaseEntity> releaseEntities, List<ReleaseLayoutEntity> releaseLayouts) {
-        HashMap<String, List<FeatureRep>> featureReps = new HashMap<>();
-        if(releaseEntities == null) {
-            releaseEntities = new ArrayList<>();
-        }
-        if(releaseLayouts == null) {
-            releaseLayouts = new ArrayList<>();
-        }
-        if(featureEntities == null) {
-            featureEntities = new ArrayList<>();
-        }
+        LinkedHashMap<String, List<FeatureRep>> featureReps = new LinkedHashMap<>();
+        ReleaseRep parkingLotFeature = new ReleaseRep();
+
         for(ReleaseEntity releaseEntity: releaseEntities) {
-            ReleaseRep releaseRep = new ReleaseRep();
-            releaseRep.setId(releaseEntity.getId());
-            releaseRep.setName(releaseEntity.getName());
-            releaseRep.setCreatedAt(releaseEntity.getCreatedAt());
-            List<FeatureRep> featureRepList = new ArrayList<>();
-            List<ReleaseLayoutEntity> layoutEntities = releaseLayouts.stream().filter(layout -> layout.getReleaseId().compareTo(releaseEntity.getId()) == 0).collect(Collectors.toList());
-            if(layoutEntities.size() > 0) {
-                ReleaseLayoutEntity releaseLayoutEntity = layoutEntities.get(0);
-                List<Long> layout = GsonUtils.getGson().fromJson(releaseLayoutEntity.getLayout(), new TypeToken<ArrayList<Long>>() {
-                }.getType());
+            if(ReleaseType.NORMAL.equals(releaseEntity.getType())) {
+                ReleaseRep releaseRep = new ReleaseRep();
+                releaseRep.setId(releaseEntity.getId());
+                releaseRep.setName(releaseEntity.getName());
+                releaseRep.setCreatedAt(releaseEntity.getCreatedAt());
+                List<FeatureRep> featureRepList = buildListFeatureOfRelease(releaseEntity, featureEntities, releaseLayouts);
 
-                for (Long featureId : layout) {
-                    List<FeatureEntity> featureList = featureEntities.stream().filter(feature -> feature.getId().compareTo(featureId) == 0).collect(Collectors.toList());
-                    if(!CollectionUtils.isEmpty(featureList)) {
-                        featureRepList.add(buildFeatureRep(featureList.get(0), null, null));
-                    }
-                }
+                featureReps.put(GsonUtils.convertToString(releaseRep), featureRepList);
             }
-
-            featureReps.put(GsonUtils.convertToString(releaseRep), featureRepList);
+            else if(ReleaseType.PARKING_LOT_FEATURE.equals(releaseEntity.getType())) {
+                parkingLotFeature = buildParkingLotRep(releaseEntity, featureEntities, null, releaseLayouts);
+            }
         }
 
         CsDevRepresentation representation = new CsDevRepresentation();
         representation.setMapFeatureReps(featureReps);
+        representation.setParkingLotFeature(parkingLotFeature);
         return representation;
+    }
+
+    private static ReleaseRep buildParkingLotRep(ReleaseEntity releaseEntity, List<FeatureEntity> featureEntities, List<EpicEntity> epicEntities, List<ReleaseLayoutEntity> releaseLayouts) {
+        ReleaseRep parkingLot = new ReleaseRep();
+        parkingLot.setId(releaseEntity.getId());
+        parkingLot.setName(releaseEntity.getName());
+        List<FeatureRep> featureReps = buildListFeatureOfRelease(releaseEntity, featureEntities,releaseLayouts);
+        parkingLot.setFeatureReps(featureReps);
+        List<EpicRep> epicReps = buildListEpicOfRelease(releaseEntity, epicEntities,releaseLayouts);
+        parkingLot.setEpicReps(epicReps);
+        return parkingLot;
+    }
+
+    private static List<FeatureRep> buildListFeatureOfRelease(ReleaseEntity releaseEntity, List<FeatureEntity> featureEntities, List<ReleaseLayoutEntity> releaseLayouts) {
+        List<FeatureRep> featureReps = new ArrayList<>();
+        if(CollectionUtils.isEmpty(featureEntities)) {
+            return featureReps;
+        }
+        List<ReleaseLayoutEntity> layoutEntities = releaseLayouts.stream().filter(layout -> layout.getReleaseId().compareTo(releaseEntity.getId()) == 0).collect(Collectors.toList());
+        if (layoutEntities.size() > 0) {
+            ReleaseLayoutEntity releaseLayoutEntity = layoutEntities.get(0);
+            List<Long> layout = GsonUtils.getGson().fromJson(releaseLayoutEntity.getLayout(), new TypeToken<ArrayList<Long>>() {
+            }.getType());
+
+            for (Long featureId : layout) {
+                List<FeatureEntity> featureList = featureEntities.stream().filter(feature -> feature.getId().compareTo(featureId) == 0).collect(Collectors.toList());
+                if (!CollectionUtils.isEmpty(featureList)) {
+                    featureReps.add(buildFeatureRep(featureList.get(0), null, null));
+                }
+            }
+        }
+        return featureReps;
     }
 
     public static FeatureRep buildFeatureRep(FeatureEntity feature, CsActionRepresentation actionRep, List<RequirementEntity> requirementEntities) {
@@ -223,19 +280,11 @@ public class RepresentationBuilder {
             featureRep.setRequirements(feature.getRequirements());
             featureRep.setCreatedAt(feature.getCreatedAt());
             featureRep.setCreatedBy(feature.getCreatedBy());
-
-            List<Long> initiatives = GsonUtils.toListObject(feature.getInitiatives(), Long.class);
+            featureRep.setProcess(feature.getProcess());
+            featureRep.setIsComplete(feature.getIsComplete() == FeatureIsComplete.TRUE);
+            featureRep.setInitiativeId(feature.getInitiativeId());
             List<Long> goals = GsonUtils.toListObject(feature.getGoals(), Long.class);
-            featureRep.setInitiatives(initiatives);
             featureRep.setGoals(goals);
-
-            if(!CollectionUtils.isEmpty(actionRep.getTodoReps())) {
-                long countComplete = actionRep.getTodoReps().stream().filter(todo->todo.getState().equals(TodoState.COMPLETE.toString())).count();
-                int process = (int) (countComplete/(actionRep.getTodoReps().size())) * 100;
-                featureRep.setProcess(process);
-            } else {
-                featureRep.setProcess(100);
-            }
         }
         if(requirementEntities != null) {
             featureRep.setRequirementReps(buildListRequirement(requirementEntities).getRequirementReps());
@@ -329,12 +378,113 @@ public class RepresentationBuilder {
             featureRep.setName(featureEntity.getName());
             featureRep.setProcess(featureEntity.getProcess());
             featureRep.setIsComplete(featureEntity.getIsComplete()== FeatureIsComplete.TRUE);
-            featureRep.setState(ReleaseState.values()[featureEntity.getState()].name());
+            featureRep.setState(FeatureState.values()[featureEntity.getState()].name());
             featureReps.add(featureRep);
         }
 
         representation.setFeatureReps(featureReps);
         representation.setReleaseReps(releaseReps);
         return representation;
+    }
+
+    public static CsDevRepresentation buildUserStoryRep(UserStoryEntity userStoryEntity, List<ReleaseEntity> releaseEntities, List<EpicEntity> epicEntities, List<FeatureEntity> featureEntities) {
+        UserStoryRep userStoryRep = buildUserStoryRep(userStoryEntity);
+
+        List<UTStep> utSteps = GsonUtils.getGson().fromJson(userStoryEntity.getSteps(), new TypeToken<ArrayList<UTStep>>(){}.getType());
+        List<UTEpic> utEpics = GsonUtils.getGson().fromJson(userStoryEntity.getEpics(), new TypeToken<ArrayList<UTEpic>>(){}.getType());
+        List<UTRelease> utReleases = GsonUtils.getGson().fromJson(userStoryEntity.getReleases(), new TypeToken<ArrayList<UTRelease>>(){}.getType());
+        userStoryRep.setSteps(buildListUTStepRep(utSteps));
+        userStoryRep.setEpics(buildListUTEpicRep(utEpics, epicEntities));
+        userStoryRep.setReleases(buildListUTReleaseRep(utReleases, releaseEntities, featureEntities));
+        userStoryRep.setPersonas(
+                GsonUtils.getGson().fromJson(
+                        userStoryEntity.getPersonas(),
+                        new TypeToken<ArrayList<Long>>(){}.getType()
+                )
+        );
+
+        CsDevRepresentation representation = new CsDevRepresentation();
+        representation.setUserStoryRep(userStoryRep);
+        return representation;
+    }
+
+    private static List<UTReleaseRep> buildListUTReleaseRep(List<UTRelease> utReleases, List<ReleaseEntity> releaseEntities, List<FeatureEntity> featureEntities) {
+        List<UTReleaseRep> utReleaseReps = new ArrayList<>();
+        for(UTRelease utRelease: utReleases) {
+            UTReleaseRep utReleaseRep = new UTReleaseRep();
+            utReleaseRep.setId(utRelease.getId());
+            utReleaseRep.setHeight(utRelease.getHeight());
+            ReleaseEntity releaseEntity = releaseEntities.stream().filter(epic -> epic.getId().compareTo(utRelease.getId()) == 0).findFirst().get();
+            utReleaseRep.setName(releaseEntity.getName());
+
+            List<UTFeatureRep> utFeatureReps = new ArrayList<>();
+            for(UTFeature utFeature: utRelease.getFeatures()) {
+                UTFeatureRep utFeatureRep = new UTFeatureRep();
+                utFeatureRep.setId(utFeature.getId());
+                utFeatureRep.setPositionX(utFeature.getPositionX());
+                utFeatureRep.setPositionY(utFeature.getPositionY());
+                FeatureEntity featureEntity = featureEntities.stream().filter(feature -> feature.getId().compareTo(utFeature.getId()) == 0).findFirst().get();
+                utFeatureRep.setName(featureEntity.getName());
+
+                utFeatureReps.add(utFeatureRep);
+            }
+
+            utReleaseRep.setFeatures(utFeatureReps);
+
+            utReleaseReps.add(utReleaseRep);
+        }
+        return utReleaseReps;
+    }
+
+    private static List<UTEpicRep> buildListUTEpicRep(List<UTEpic> utEpics, List<EpicEntity> epicEntities) {
+        List<UTEpicRep> utEpicReps = new ArrayList<>();
+        for(UTEpic utEpic: utEpics) {
+            UTEpicRep utEpicRep = new UTEpicRep();
+            utEpicRep.setId(utEpic.getId());
+            utEpicRep.setIndex(utEpic.getIndex());
+            EpicEntity epicEntity = epicEntities.stream().filter(epic -> epic.getId().compareTo(utEpic.getId()) == 0).findFirst().get();
+            utEpicRep.setName(epicEntity.getName());
+
+            utEpicReps.add(utEpicRep);
+        }
+        return utEpicReps;
+    }
+
+    public static List<UTStepRep> buildListUTStepRep(List<UTStep> utSteps) {
+        List<UTStepRep> utStepReps = new ArrayList<>();
+        for(UTStep utStep: utSteps) {
+            UTStepRep utStepRep = new UTStepRep();
+            utStepRep.setId(utStep.getId());
+            utStepRep.setName(utStep.getName());
+            utStepRep.setIndex(utStep.getIndex());
+            utStepRep.setLength(utStep.getLength());
+
+            utStepReps.add(utStepRep);
+        }
+        return utStepReps;
+    }
+
+    public static CsDevRepresentation buildUserStoryRep(List<UserStoryEntity> userStoryEntities) {
+        List<UserStoryRep> userStoryReps = new ArrayList<>();
+
+        for(UserStoryEntity userStoryEntity: userStoryEntities) {
+            userStoryReps.add(buildUserStoryRep(userStoryEntity));
+        }
+
+        CsDevRepresentation representation = new CsDevRepresentation();
+        representation.setUserStoryReps(userStoryReps);
+        return representation;
+    }
+
+    private static UserStoryRep buildUserStoryRep(UserStoryEntity userStoryEntity) {
+        UserStoryRep userStoryRep = new UserStoryRep();
+        userStoryRep.setId(userStoryEntity.getId());
+        userStoryRep.setName(userStoryEntity.getName());
+        userStoryRep.setState(UserStoryState.values()[userStoryEntity.getState()].name());
+        userStoryRep.setProductId(userStoryEntity.getProductId());
+        userStoryRep.setCreatedAt(userStoryEntity.getCreatedAt());
+        userStoryRep.setCreatedBy(userStoryEntity.getCreatedBy());
+        userStoryRep.setLength(userStoryEntity.getLength());
+        return userStoryRep;
     }
 }

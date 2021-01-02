@@ -15,12 +15,12 @@ public class ReleaseLayoutDaoImpl implements ReleaseLayoutDao {
     private DataHelper dataHelper;
 
     private static final String SQL_CREATE =
-            "INSERT INTO release_layout(id, release_id, product_id, layout) " +
-                    "values(%d, %d, %d, '%s')";
-    private static final String SQL_SELECT_BY_RELEASE_ID =
-            "SELECT * FROM release_layout WHERE release_id = %d";
-    private static final String SQL_SELECT_BY_PRODUCT_ID =
-            "SELECT * FROM release_layout WHERE product_id = %d";
+            "INSERT INTO release_layout(id, release_id, product_id, type, layout) " +
+                    "values(%d, %d, %d, '%s', '%s')";
+    private static final String SQL_SELECT_BY_RELEASE_ID_AND_TYPE =
+            "SELECT * FROM release_layout WHERE release_id = %d AND type = '%s'";
+    private static final String SQL_SELECT_BY_PRODUCT_ID_AND_TYPE =
+            "SELECT * FROM release_layout WHERE product_id = %d AND type = '%s'";
     private static final String SQL_UPDATE =
             "UPDATE release_layout SET layout = '%s' " +
                     "WHERE id = %d";
@@ -28,17 +28,20 @@ public class ReleaseLayoutDaoImpl implements ReleaseLayoutDao {
 
     @Override
     public void create(ReleaseLayoutEntity entity) throws DBServiceException {
-        String query = String.format(SQL_CREATE, entity.getId(), entity.getReleaseId(), entity.getProductId(), entity.getLayout());
+        String query = String.format(SQL_CREATE, entity.getId(), entity.getReleaseId(),
+                entity.getProductId(), entity.getType(), entity.getLayout());
         dataHelper.executeSQL(query);
     }
 
     @Override
     public List<ReleaseLayoutEntity> get(ReleaseLayoutEntity entity) throws DBServiceException, ReleaseLayoutNotFoundException {
         String query = "";
-        if(entity.getReleaseId() != null) {
-            query = String.format(SQL_SELECT_BY_RELEASE_ID, entity.getReleaseId());
-        } else if(entity.getProductId() != null) {
-            query = String.format(SQL_SELECT_BY_PRODUCT_ID, entity.getProductId());
+        if(entity.getType() != null) {
+            if (entity.getReleaseId() != null) {
+                query = String.format(SQL_SELECT_BY_RELEASE_ID_AND_TYPE, entity.getReleaseId(), entity.getType());
+            } else if (entity.getProductId() != null) {
+                query = String.format(SQL_SELECT_BY_PRODUCT_ID_AND_TYPE, entity.getProductId(), entity.getType());
+            }
         }
 
         List<ReleaseLayoutEntity> entities = dataHelper.querySQL(query, ReleaseLayoutEntity.class);

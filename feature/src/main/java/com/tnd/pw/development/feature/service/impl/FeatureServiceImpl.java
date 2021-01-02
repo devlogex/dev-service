@@ -2,18 +2,24 @@ package com.tnd.pw.development.feature.service.impl;
 
 import com.tnd.common.api.common.Utils.GenUID;
 import com.tnd.dbservice.common.exception.DBServiceException;
+import com.tnd.pw.development.dbservice.GsonUtils;
 import com.tnd.pw.development.feature.constants.FeatureState;
 import com.tnd.pw.development.feature.constants.RequirementState;
+import com.tnd.pw.development.feature.constants.UserStoryState;
 import com.tnd.pw.development.feature.dao.FeatureDao;
 import com.tnd.pw.development.feature.dao.RequirementDao;
+import com.tnd.pw.development.feature.dao.UserStoryDao;
 import com.tnd.pw.development.feature.entity.FeatureEntity;
 import com.tnd.pw.development.feature.entity.RequirementEntity;
+import com.tnd.pw.development.feature.entity.UTEpic;
+import com.tnd.pw.development.feature.entity.UserStoryEntity;
 import com.tnd.pw.development.feature.exception.FeatureNotFoundException;
 import com.tnd.pw.development.feature.exception.RequirementNotFoundException;
+import com.tnd.pw.development.feature.exception.UserStoryNotFoundException;
 import com.tnd.pw.development.feature.service.FeatureService;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 
 public class FeatureServiceImpl implements FeatureService {
@@ -21,6 +27,8 @@ public class FeatureServiceImpl implements FeatureService {
     private FeatureDao featureDao;
     @Autowired
     private RequirementDao requirementDao;
+    @Autowired
+    private UserStoryDao userStoryDao;
 
     @Override
     public FeatureEntity createFeature(FeatureEntity entity) throws DBServiceException {
@@ -75,5 +83,35 @@ public class FeatureServiceImpl implements FeatureService {
     @Override
     public void removeRequirement(RequirementEntity entity) throws DBServiceException {
         requirementDao.remove(entity);
+    }
+
+    @Override
+    public UserStoryEntity createUserStory(UserStoryEntity entity) throws DBServiceException {
+        entity.setId(GenUID.genIdByProduct(entity.getProductId()));
+        entity.setCreatedAt(System.currentTimeMillis());
+        entity.setState(UserStoryState.ACTIVE.ordinal());
+        entity.setName("User Story map");
+
+        List emptyList = new ArrayList();
+        entity.setEpics(GsonUtils.convertToString(emptyList));
+        entity.setReleases(GsonUtils.convertToString(emptyList));
+        entity.setSteps(GsonUtils.convertToString(emptyList));
+        userStoryDao.create(entity);
+        return entity;
+    }
+
+    @Override
+    public List<UserStoryEntity> getUserStory(UserStoryEntity entity) throws DBServiceException, UserStoryNotFoundException {
+        return userStoryDao.get(entity);
+    }
+
+    @Override
+    public void updateUserStory(UserStoryEntity entity) throws DBServiceException {
+        userStoryDao.update(entity);
+    }
+
+    @Override
+    public void removeUserStory(UserStoryEntity entity) throws DBServiceException {
+        userStoryDao.remove(entity);
     }
 }
