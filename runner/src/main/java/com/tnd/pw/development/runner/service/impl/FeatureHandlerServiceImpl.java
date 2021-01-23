@@ -475,6 +475,16 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
         return getListUserStory(userStoryEntity.getProductId(), null);
     }
 
+    @Override
+    public CsDevRepresentation getFeatureByInitiativeIds(DevRequest request) throws DBServiceException {
+        List<FeatureEntity> featureEntities = new ArrayList<>();
+        try {
+            featureEntities = featureService.getFeatureByInitiativeIds(request.getInitiatives());
+        } catch (FeatureNotFoundException e) {
+        }
+        return RepresentationBuilder.buildListFeatureReps(featureEntities);
+    }
+
     private CsDevRepresentation getUserStoryInfo(UserStoryEntity userStoryEntity) throws DBServiceException {
         List<ReleaseEntity> releaseEntities = new ArrayList<>();
         List<EpicEntity> epicEntities = new ArrayList<>();

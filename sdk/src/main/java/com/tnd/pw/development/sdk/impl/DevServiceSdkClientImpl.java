@@ -8,6 +8,7 @@ import com.tnd.pw.development.common.requests.DevRequest;
 import com.tnd.pw.development.sdk.DevServiceSdkClient;
 
 import java.util.Arrays;
+import java.util.List;
 
 public class DevServiceSdkClientImpl extends AbstractService implements DevServiceSdkClient {
 
@@ -48,5 +49,19 @@ public class DevServiceSdkClientImpl extends AbstractService implements DevServi
         DevRequest request = new DevRequest();
         request.setProductId(productId);
         return client.sendRequest(Methods.GENERATE_PARKING_LOT, request);
+    }
+
+    @Override
+    public BaseResponse<CsDevRepresentation> getFeatureByInitiativeIds(List<Long> initiativeIds) {
+        DevRequest request = new DevRequest();
+        request.setInitiatives(initiativeIds);
+        return client.sendRequest(Methods.GET_FEATURES_BY_INITIATIVE_IDS, request);
+    }
+
+    @Override
+    public BaseResponse<CsDevRepresentation> getReleaseByProductId(Long productId) {
+        DevRequest request = new DevRequest();
+        request.setProductId(productId);
+        return client.sendRequest(Methods.GET_RELEASES_BY_PRODUCT_ID, request);
     }
 }

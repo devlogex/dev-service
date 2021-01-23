@@ -52,6 +52,11 @@ public class FeatureServiceImpl implements FeatureService {
     }
 
     @Override
+    public List<FeatureEntity> getFeatureByInitiativeIds(List<Long> initiativeIds) throws DBServiceException, FeatureNotFoundException {
+        return featureDao.getByInitiativeIds(initiativeIds);
+    }
+
+    @Override
     public void updateFeature(FeatureEntity entity) throws DBServiceException {
         featureDao.update(entity);
     }

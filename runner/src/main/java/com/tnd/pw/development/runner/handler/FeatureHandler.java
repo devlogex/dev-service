@@ -5,6 +5,7 @@ import com.tnd.common.api.server.BaseHandler;
 import com.tnd.common.api.server.service.annotation.HandlerService;
 import com.tnd.common.api.server.service.annotation.HandlerServiceClass;
 import com.tnd.dbservice.common.exception.DBServiceException;
+import com.tnd.pw.development.common.constants.Methods;
 import com.tnd.pw.development.feature.exception.UserStoryNotFoundException;
 import com.tnd.pw.development.runner.exception.ActionServiceFailedException;
 import com.tnd.pw.development.runner.exception.InvalidDataException;
@@ -67,6 +68,14 @@ public class FeatureHandler implements BaseHandler {
         LOGGER.info("[FeatureHandler] getFeature() - request: {}", GsonUtils.convertToString(request));
         CsDevRepresentation response = featureHandlerService.getFeature(request);
         LOGGER.info("[FeatureHandler] getFeature() - response: {}", GsonUtils.convertToString(response));
+        return new BaseResponse<>(response);
+    }
+
+    @HandlerService(method = Methods.GET_FEATURES_BY_INITIATIVE_IDS)
+    public BaseResponse<CsDevRepresentation> getFeatureByInitiativeIds(DevRequest request) throws DBServiceException {
+        LOGGER.info("[FeatureHandler] getFeatureByInitiativeIds() - request: {}", GsonUtils.convertToString(request));
+        CsDevRepresentation response = featureHandlerService.getFeatureByInitiativeIds(request);
+        LOGGER.info("[FeatureHandler] getFeatureByInitiativeIds() - response: {}", GsonUtils.convertToString(response));
         return new BaseResponse<>(response);
     }
 

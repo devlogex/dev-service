@@ -52,6 +52,14 @@ public class ReleaseHandler implements BaseHandler {
         return new BaseResponse<>(response);
     }
 
+    @HandlerService(method = Methods.GET_RELEASES_BY_PRODUCT_ID)
+    public BaseResponse<CsDevRepresentation> getReleaseByProductId(DevRequest request) throws DBServiceException {
+        LOGGER.info("[ReleaseHandler] getReleaseByProductId() - request: {}", GsonUtils.convertToString(request));
+        CsDevRepresentation response = releaseHandlerService.getReleaseByProductId(request);
+        LOGGER.info("[ReleaseHandler] getReleaseByProductId() - response: {}", GsonUtils.convertToString(response));
+        return new BaseResponse<>(response);
+    }
+
     @HandlerService(path = "/development/release/info", protocol = "GET")
     public BaseResponse<ReleaseRep> getReleaseInfo(DevRequest request) throws DBServiceException, ReleaseNotFoundException, ActionServiceFailedException {
         LOGGER.info("[ReleaseHandler] getReleaseInfo() - request: {}", GsonUtils.convertToString(request));

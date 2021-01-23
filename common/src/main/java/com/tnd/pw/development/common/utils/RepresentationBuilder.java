@@ -50,12 +50,36 @@ public class RepresentationBuilder {
         return representation;
     }
 
-    private static List<FeatureRep> buildListFeatureRep(List<FeatureEntity> featureEntities) {
+    public static CsDevRepresentation buildListReleaseRep(List<ReleaseEntity> releaseEntities) {
+        List<ReleaseRep> releaseReps = new ArrayList<>();
+
+        for (ReleaseEntity releaseEntity : releaseEntities) {
+            if(ReleaseType.NORMAL.equals(releaseEntity.getType())) {
+                ReleaseRep releaseRep = buildReleaseRep(releaseEntity, null, null);
+                releaseReps.add(releaseRep);
+            }
+        }
+        CsDevRepresentation representation = new CsDevRepresentation();
+        representation.setReleaseReps(releaseReps);
+        return representation;
+    }
+
+    public static List<FeatureRep> buildListFeatureRep(List<FeatureEntity> featureEntities) {
         List<FeatureRep> featureReps = new ArrayList<>();
         for(FeatureEntity featureEntity: featureEntities) {
             featureReps.add(buildFeatureRep(featureEntity, null,null));
         }
         return featureReps;
+    }
+
+    public static CsDevRepresentation buildListFeatureReps(List<FeatureEntity> featureEntities) {
+        List<FeatureRep> featureReps = new ArrayList<>();
+        for(FeatureEntity featureEntity: featureEntities) {
+            featureReps.add(buildFeatureRep(featureEntity, null,null));
+        }
+        CsDevRepresentation representation = new CsDevRepresentation();
+        representation.setFeatureReps(featureReps);
+        return representation;
     }
 
     public static ReleaseRep buildReleaseRep(ReleaseEntity releaseEntity, CsActionRepresentation actionRep, List<ReleasePhaseEntity> releasePhaseEntities) {
@@ -68,6 +92,8 @@ public class RepresentationBuilder {
         releaseRep.setStartOn(releaseEntity.getStartOn());
         releaseRep.setEndOn(releaseEntity.getEndOn());
         releaseRep.setDevelopStartOn(releaseEntity.getDevelopStartOn());
+        releaseRep.setProcess(releaseEntity.getProcess());
+        releaseRep.setState(ReleaseState.values()[releaseEntity.getState()].name());
 
         if(actionRep != null) {
             releaseRep.setTodoReps(actionRep.getTodoReps());
@@ -77,14 +103,12 @@ public class RepresentationBuilder {
             releaseRep.setFiles(releaseEntity.getFiles());
             releaseRep.setCreatedAt(releaseEntity.getCreatedAt());
             releaseRep.setCreatedBy(releaseEntity.getCreatedBy());
-            releaseRep.setState(ReleaseState.values()[releaseEntity.getState()].name());
             releaseRep.setOwner(releaseEntity.getOwner());
             List<Long> initiatives = GsonUtils.toListObject(releaseEntity.getInitiatives(), Long.class);
             List<Long> goals = GsonUtils.toListObject(releaseEntity.getGoals(), Long.class);
             releaseRep.setInitiatives(initiatives);
             releaseRep.setGoals(goals);
 
-            releaseRep.setProcess(releaseEntity.getProcess());
         }
         List<ReleasePhaseRep> releasePhaseReps = new ArrayList<>();
         if(releasePhaseEntities != null) {
@@ -485,6 +509,12 @@ public class RepresentationBuilder {
         userStoryRep.setCreatedAt(userStoryEntity.getCreatedAt());
         userStoryRep.setCreatedBy(userStoryEntity.getCreatedBy());
         userStoryRep.setLength(userStoryEntity.getLength());
+        userStoryRep.setPersonas(
+                GsonUtils.getGson().fromJson(
+                        userStoryEntity.getPersonas(),
+                        new TypeToken<ArrayList<Long>>(){}.getType()
+                )
+        );
         return userStoryRep;
     }
 }

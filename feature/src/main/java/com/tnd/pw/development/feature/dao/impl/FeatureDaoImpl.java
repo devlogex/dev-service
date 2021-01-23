@@ -23,6 +23,8 @@ public class FeatureDaoImpl implements FeatureDao {
             "SELECT * FROM feature WHERE id = %d ORDER BY created_at";
     private static final String SQL_SELECT_BY_LIST_RELEASE_ID =
             "SELECT * FROM feature WHERE release_id IN (%s) ORDER BY created_at";
+    private static final String SQL_SELECT_BY_LIST_INITIATIVE_ID =
+            "SELECT * FROM feature WHERE initiative_id IN (%s) ORDER BY created_at";
     private static final String SQL_SELECT_BY_PRODUCT_ID =
             "SELECT * FROM feature WHERE product_id = %d ORDER BY created_at";
     private static final String SQL_SELECT_BY_GOAL_ID =
@@ -101,5 +103,20 @@ public class FeatureDaoImpl implements FeatureDao {
     public void remove(FeatureEntity entity) throws DBServiceException {
         String query = String.format(SQL_DELETE, entity.getId());
         dataHelper.executeSQL(query);
+    }
+
+    @Override
+    public List<FeatureEntity> getByInitiativeIds(List<Long> initiativeIds) throws DBServiceException, FeatureNotFoundException {
+        String listId = "";
+        for (int i=0;i<initiativeIds.size() - 1; i++) {
+            listId += initiativeIds.get(i) + ",";
+        }
+        listId += initiativeIds.get(initiativeIds.size()-1);
+        String query = String.format(SQL_SELECT_BY_LIST_INITIATIVE_ID, listId);
+        List<FeatureEntity> entities = dataHelper.querySQL(query, FeatureEntity.class);
+        if(CollectionUtils.isEmpty(entities)) {
+            throw new FeatureNotFoundException();
+        }
+        return entities;
     }
 }

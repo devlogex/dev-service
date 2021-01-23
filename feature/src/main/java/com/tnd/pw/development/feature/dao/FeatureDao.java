@@ -13,4 +13,6 @@ public interface FeatureDao {
     List<FeatureEntity> get(List<Long> releaseIds) throws DBServiceException, FeatureNotFoundException;
     void update(FeatureEntity entity) throws DBServiceException;
     void remove(FeatureEntity entity) throws DBServiceException;
+
+    List<FeatureEntity> getByInitiativeIds(List<Long> initiativeIds) throws DBServiceException, FeatureNotFoundException;
 }

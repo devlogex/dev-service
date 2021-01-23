@@ -47,4 +47,6 @@ public interface FeatureHandlerService {
     CsDevRepresentation updateUserStory(DevRequest request) throws DBServiceException, UserStoryNotFoundException, InvalidDataException;
 
     CsDevRepresentation removeUserStory(DevRequest request) throws DBServiceException, UserStoryNotFoundException;
+
+    CsDevRepresentation getFeatureByInitiativeIds(DevRequest request) throws DBServiceException;
 }

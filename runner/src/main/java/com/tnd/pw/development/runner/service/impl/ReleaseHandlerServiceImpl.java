@@ -539,6 +539,21 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
         return getEpic(epicEntity.getProductId());
     }
 
+    @Override
+    public CsDevRepresentation getReleaseByProductId(DevRequest request) throws DBServiceException {
+        Long productId = request.getProductId();
+        List<ReleaseEntity> releases = new ArrayList<>();
+        try {
+            releases = releaseService.getRelease(
+                    ReleaseEntity.builder()
+                            .productId(productId)
+                            .build()
+            );
+        } catch (ReleaseNotFoundException e) {
+        }
+        return RepresentationBuilder.buildListReleaseRep(releases);
+    }
+
 
     private void checkInputData(List<Long> layout1, List<Long> layout2) throws InvalidDataException {
         HashSet<Long> set = new HashSet<>();

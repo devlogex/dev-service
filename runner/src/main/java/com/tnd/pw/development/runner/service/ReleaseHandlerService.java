@@ -42,4 +42,6 @@ public interface ReleaseHandlerService {
     CsDevRepresentation updateEpicLayout(DevRequest request) throws DBServiceException, ReleaseLayoutNotFoundException, InvalidDataException;
 
     CsDevRepresentation updateEpicRelease(DevRequest request) throws DBServiceException, EpicNotFoundException, ReleaseLayoutNotFoundException, InvalidDataException;
+
+    CsDevRepresentation getReleaseByProductId(DevRequest request) throws DBServiceException;
 }
