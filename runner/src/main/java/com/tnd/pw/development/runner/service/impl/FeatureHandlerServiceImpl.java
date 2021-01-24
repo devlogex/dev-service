@@ -489,8 +489,8 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
         List<ReleaseEntity> releaseEntities = new ArrayList<>();
         List<EpicEntity> epicEntities = new ArrayList<>();
         List<FeatureEntity> featureEntities = new ArrayList<>();
+        List<Long> epicIds = new ArrayList<>();
         try {
-            List<Long> epicIds = new ArrayList<>();
             List<Long> releaseIds = new ArrayList<>();
             List<UTEpic> utEpics = GsonUtils.getGson().fromJson(userStoryEntity.getEpics(), new TypeToken<ArrayList<UTEpic>>(){}.getType());
             List<UTRelease> utReleases = GsonUtils.getGson().fromJson(userStoryEntity.getReleases(), new TypeToken<ArrayList<UTRelease>>(){}.getType());
@@ -502,13 +502,14 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
                 releaseEntities = releaseService.getRelease(releaseIds);
                 featureEntities = featureService.getFeature(releaseIds);
             }
-            if(!CollectionUtils.isEmpty(epicIds)) {
-                epicEntities = releaseService.getEpic(epicIds);
-            }
-
-        } catch (ReleaseNotFoundException | EpicNotFoundException | FeatureNotFoundException e) {
+        } catch (ReleaseNotFoundException | FeatureNotFoundException e) {
         }
-
+        if(!CollectionUtils.isEmpty(epicIds)) {
+            try {
+                epicEntities = releaseService.getEpic(epicIds);
+            } catch (EpicNotFoundException e) {
+            }
+        }
         return RepresentationBuilder.buildUserStoryRep(userStoryEntity, releaseEntities, epicEntities, featureEntities);
     }
 
