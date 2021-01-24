@@ -34,11 +34,12 @@ public class IdeaHandlerServiceImpl implements IdeaHandlerService {
     public CsDevRepresentation addIdea(DevRequest request) throws DBServiceException {
         HashSet<Long> set = new HashSet<>();
         set.add(request.getPayload().getUserId());
+        Long productId = request.getId();
 
         IdeaEntity ideaEntity = ideaService.create(
                 IdeaEntity.builder()
                         .name(request.getName())
-                        .productId(request.getId())
+                        .productId(productId)
                         .workspaceId(request.getPayload().getWorkspaceId())
                         .content(request.getContent())
                         .createdBy(request.getPayload().getUserId())
@@ -47,7 +48,7 @@ public class IdeaHandlerServiceImpl implements IdeaHandlerService {
         );
         sdkService.createHistory(request.getPayload().getUserId(), ideaEntity.getId(), ReportAction.CREATED, GsonUtils.convertToString(ideaEntity));
 
-        return getIdeas(request.getPayload().getUserId(), request.getPayload().getWorkspaceId(), null);
+        return getIdeas(request.getPayload().getUserId(), productId, null);
     }
 
     @Override
@@ -73,18 +74,18 @@ public class IdeaHandlerServiceImpl implements IdeaHandlerService {
         }
         ideaService.update(ideaEntity);
         sdkService.createHistory(request.getPayload().getUserId(), ideaEntity.getId(), ReportAction.UPDATED, oldIdea + "|" + GsonUtils.convertToString(ideaEntity));
-        return getIdeas(request.getPayload().getUserId(), request.getPayload().getWorkspaceId(), null);
+        return getIdeas(request.getPayload().getUserId(), ideaEntity.getProductId(), null);
     }
 
     @Override
-    public CsDevRepresentation getIdea(WorkspaceRequest request) throws DBServiceException {
+    public CsDevRepresentation getIdea(DevRequest request) throws DBServiceException {
         Long userId = request.getPayload().getUserId();
-        Long workspaceId = request.getPayload().getWorkspaceId();
+        Long productId = request.getId();
         Integer state = request.getState() != null ?
                 IdeaState.valueOf(request.getState()).ordinal()
                 :
                 null;
-        return getIdeas(userId, workspaceId, state);
+        return getIdeas(userId, productId, state);
     }
 
     @Override
@@ -132,15 +133,15 @@ public class IdeaHandlerServiceImpl implements IdeaHandlerService {
                     .id(ideaEntity.getId())
                     .build()
         );
-        return getIdeas(request.getPayload().getUserId(), request.getPayload().getWorkspaceId(), null);
+        return getIdeas(request.getPayload().getUserId(), ideaEntity.getProductId(), null);
     }
 
-    private CsDevRepresentation getIdeas(Long userId, Long workspaceId, Integer state) throws DBServiceException {
+    private CsDevRepresentation getIdeas(Long userId, Long productId, Integer state) throws DBServiceException {
         List<IdeaEntity> ideaEntities = null;
         try {
             ideaEntities = ideaService.get(
                     IdeaEntity.builder()
-                            .workspaceId(workspaceId)
+                            .productId(productId)
                             .state(state)
                             .build()
             );

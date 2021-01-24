@@ -41,7 +41,7 @@ public class IdeaHandler implements BaseHandler {
     }
 
     @HandlerService(path = "/development/idea", protocol = "GET")
-    public BaseResponse<CsDevRepresentation> getIdea(WorkspaceRequest request) throws DBServiceException {
+    public BaseResponse<CsDevRepresentation> getIdea(DevRequest request) throws DBServiceException {
         LOGGER.info("[IdeaHandler] getIdea() - request: {}", GsonUtils.convertToString(request));
         CsDevRepresentation response = ideaHandlerService.getIdea(request);
         LOGGER.info("[IdeaHandler] getIdea() - response: {}", GsonUtils.convertToString(response));

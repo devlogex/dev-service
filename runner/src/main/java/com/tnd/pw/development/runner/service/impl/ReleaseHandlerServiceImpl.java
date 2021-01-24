@@ -445,6 +445,7 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
                         .build()
         ).get(0);
         releaseService.removeEpic(epicEntity);
+        calculateService.updateReleaseLayoutAfterRemoveEpic(epicEntity);
         calculateService.updateUserStoryAfterRemoveEpic(epicEntity.getId());
         return getEpic(epicEntity.getProductId());
     }

@@ -13,7 +13,7 @@ public interface IdeaHandlerService {
 
     CsDevRepresentation updateIdea(DevRequest request) throws DBServiceException, IdeaNotFoundException;
 
-    CsDevRepresentation getIdea(WorkspaceRequest request) throws DBServiceException;
+    CsDevRepresentation getIdea(DevRequest request) throws DBServiceException;
 
     IdeaRep getIdeaInfo(DevRequest request) throws DBServiceException, IdeaNotFoundException, ActionServiceFailedException;
 

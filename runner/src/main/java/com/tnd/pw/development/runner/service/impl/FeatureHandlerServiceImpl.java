@@ -293,6 +293,7 @@ public class FeatureHandlerServiceImpl implements FeatureHandlerService {
         ).get(0);
         featureService.removeFeature(featureEntity);
         calculateService.calculateDevHide(featureEntity);
+        calculateService.updateReleaseLayoutAfterRemoveFeature(featureEntity);
         calculateService.updateUserStoryAfterRemoveFeature(featureEntity.getId());
         return getFeatures(featureEntity.getProductId());
     }

@@ -22,6 +22,8 @@ public class IdeaDaoImpl implements IdeaDao {
             "SELECT * FROM idea WHERE id = %d ORDER BY created_at DESC";
     private static final String SQL_SELECT_BY_PRODUCT_ID =
             "SELECT * FROM idea WHERE product_id = %d ORDER BY created_at DESC";
+    private static final String SQL_SELECT_BY_PRODUCT_ID_AND_STATE =
+            "SELECT * FROM idea WHERE product_id = %d AND state = %d ORDER BY created_at DESC";
     private static final String SQL_SELECT_BY_WORKSPACE_ID =
             "SELECT * FROM idea WHERE workspace_id = %d ORDER BY created_at DESC";
     private static final String SQL_SELECT_BY_WORKSPACE_ID_AND_STATE =
@@ -46,6 +48,9 @@ public class IdeaDaoImpl implements IdeaDao {
         String query = "";
         if(entity.getId() != null) {
             query = String.format(SQL_SELECT_BY_ID, entity.getId());
+        }
+        else if(entity.getProductId() != null && entity.getState() != null) {
+            query = String.format(SQL_SELECT_BY_PRODUCT_ID_AND_STATE, entity.getProductId(), entity.getState());
         }
         else if(entity.getProductId() != null) {
             query = String.format(SQL_SELECT_BY_PRODUCT_ID, entity.getProductId());

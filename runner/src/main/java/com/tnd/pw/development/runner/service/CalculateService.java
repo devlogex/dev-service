@@ -8,7 +8,11 @@ import com.tnd.pw.development.feature.entity.*;
 import com.tnd.pw.development.feature.exception.FeatureNotFoundException;
 import com.tnd.pw.development.feature.exception.UserStoryNotFoundException;
 import com.tnd.pw.development.feature.service.FeatureService;
+import com.tnd.pw.development.release.constants.ReleaseLayoutType;
+import com.tnd.pw.development.release.entity.EpicEntity;
 import com.tnd.pw.development.release.entity.ReleaseEntity;
+import com.tnd.pw.development.release.entity.ReleaseLayoutEntity;
+import com.tnd.pw.development.release.exception.ReleaseLayoutNotFoundException;
 import com.tnd.pw.development.release.exception.ReleaseNotFoundException;
 import com.tnd.pw.development.release.exception.UnableUpdateParkingLotException;
 import com.tnd.pw.development.release.service.ReleaseService;
@@ -63,21 +67,23 @@ public class CalculateService {
 
     public void updateUserStoryAfterRemoveRelease(Long releaseId) throws DBServiceException {
         try {
-            UserStoryEntity userStoryEntity = featureService.getUserStory(
+            List<UserStoryEntity> userStoryEntities = featureService.getUserStory(
                     UserStoryEntity.builder()
                             .releases(String.valueOf(releaseId))
                             .build()
-            ).get(0);
-            List<UTRelease> utReleases = GsonUtils.getGson().fromJson(
-                    userStoryEntity.getReleases(),
-                    new TypeToken<ArrayList<UTRelease>>() {
-                    }.getType()
             );
-            if(!CollectionUtils.isEmpty(utReleases)) {
-                List<UTRelease> utReleasesFilter = utReleases.stream().filter(release -> release.getId().compareTo(releaseId) != 0).collect(Collectors.toList());
-                if(utReleases.size() != utReleasesFilter.size()) {
-                    userStoryEntity.setReleases(GsonUtils.convertToString(utReleasesFilter));
-                    featureService.updateUserStory(userStoryEntity);
+            for(UserStoryEntity userStoryEntity: userStoryEntities) {
+                List<UTRelease> utReleases = GsonUtils.getGson().fromJson(
+                        userStoryEntity.getReleases(),
+                        new TypeToken<ArrayList<UTRelease>>() {
+                        }.getType()
+                );
+                if (!CollectionUtils.isEmpty(utReleases)) {
+                    List<UTRelease> utReleasesFilter = utReleases.stream().filter(release -> release.getId().compareTo(releaseId) != 0).collect(Collectors.toList());
+                    if (utReleases.size() != utReleasesFilter.size()) {
+                        userStoryEntity.setReleases(GsonUtils.convertToString(utReleasesFilter));
+                        featureService.updateUserStory(userStoryEntity);
+                    }
                 }
             }
         } catch (UserStoryNotFoundException e) {
@@ -86,21 +92,23 @@ public class CalculateService {
 
     public void updateUserStoryAfterRemoveEpic(Long epicId) throws DBServiceException {
         try {
-            UserStoryEntity userStoryEntity = featureService.getUserStory(
+            List<UserStoryEntity> userStoryEntities = featureService.getUserStory(
                     UserStoryEntity.builder()
                             .epics(String.valueOf(epicId))
                             .build()
-            ).get(0);
-            List<UTEpic> utEpics = GsonUtils.getGson().fromJson(
-                    userStoryEntity.getReleases(),
-                    new TypeToken<ArrayList<UTEpic>>() {
-                    }.getType()
             );
-            if(!CollectionUtils.isEmpty(utEpics)) {
-                List<UTEpic> utEpicsFilter = utEpics.stream().filter(epic -> epic.getId().compareTo(epicId) != 0).collect(Collectors.toList());
-                if(utEpics.size() != utEpicsFilter.size()) {
-                    userStoryEntity.setEpics(GsonUtils.convertToString(utEpicsFilter));
-                    featureService.updateUserStory(userStoryEntity);
+            for(UserStoryEntity userStoryEntity: userStoryEntities) {
+                List<UTEpic> utEpics = GsonUtils.getGson().fromJson(
+                        userStoryEntity.getEpics(),
+                        new TypeToken<ArrayList<UTEpic>>() {
+                        }.getType()
+                );
+                if (!CollectionUtils.isEmpty(utEpics)) {
+                    List<UTEpic> utEpicsFilter = utEpics.stream().filter(epic -> epic.getId().compareTo(epicId) != 0).collect(Collectors.toList());
+                    if (utEpics.size() != utEpicsFilter.size()) {
+                        userStoryEntity.setEpics(GsonUtils.convertToString(utEpicsFilter));
+                        featureService.updateUserStory(userStoryEntity);
+                    }
                 }
             }
         } catch (UserStoryNotFoundException e) {
@@ -109,30 +117,73 @@ public class CalculateService {
 
     public void updateUserStoryAfterRemoveFeature(Long featureId) throws DBServiceException {
         try {
-            UserStoryEntity userStoryEntity = featureService.getUserStory(
+            List<UserStoryEntity> userStoryEntities = featureService.getUserStory(
                     UserStoryEntity.builder()
                             .releases(String.valueOf(featureId))
                             .build()
-            ).get(0);
-            List<UTRelease> utReleases = GsonUtils.getGson().fromJson(
-                    userStoryEntity.getReleases(),
-                    new TypeToken<ArrayList<UTRelease>>() {
-                    }.getType()
             );
-            if(!CollectionUtils.isEmpty(utReleases)) {
-                OUTLOOK: for(int i = 0; i < utReleases.size(); i++) {
-                    List<UTFeature> features = utReleases.get(i).getFeatures();
-                    for(int j = 0; j < features.size(); j++ ) {
-                        if(features.get(j).getId().compareTo(featureId) == 0) {
-                            features.remove(j);
-                            break OUTLOOK;
+            for(UserStoryEntity userStoryEntity: userStoryEntities) {
+                List<UTRelease> utReleases = GsonUtils.getGson().fromJson(
+                        userStoryEntity.getReleases(),
+                        new TypeToken<ArrayList<UTRelease>>() {
+                        }.getType()
+                );
+                if (!CollectionUtils.isEmpty(utReleases)) {
+                    OUTLOOK:
+                    for (int i = 0; i < utReleases.size(); i++) {
+                        List<UTFeature> features = utReleases.get(i).getFeatures();
+                        for (int j = 0; j < features.size(); j++) {
+                            if (features.get(j).getId().compareTo(featureId) == 0) {
+                                features.remove(j);
+                                break OUTLOOK;
+                            }
                         }
                     }
+                    userStoryEntity.setReleases(GsonUtils.convertToString(utReleases));
+                    featureService.updateUserStory(userStoryEntity);
                 }
-                userStoryEntity.setReleases(GsonUtils.convertToString(utReleases));
-                featureService.updateUserStory(userStoryEntity);
             }
         } catch (UserStoryNotFoundException e) {
+        }
+    }
+
+    public void updateReleaseLayoutAfterRemoveFeature(FeatureEntity featureEntity) throws DBServiceException {
+        try {
+            ReleaseLayoutEntity releaseLayoutEntity = releaseService.getReleaseLayout(
+                    ReleaseLayoutEntity.builder()
+                            .releaseId(featureEntity.getReleaseId())
+                            .type(ReleaseLayoutType.FEATURE)
+                            .build()
+            ).get(0);
+            List<Long> layout = GsonUtils.getGson().fromJson(
+                    releaseLayoutEntity.getLayout(),
+                    new TypeToken<ArrayList<Long>>() {
+                    }.getType()
+            );
+            layout.remove(featureEntity.getId());
+            releaseLayoutEntity.setLayout(GsonUtils.convertToString(layout));
+            releaseService.updateReleaseLayout(releaseLayoutEntity);
+        } catch (ReleaseLayoutNotFoundException e) {
+        }
+    }
+
+    public void updateReleaseLayoutAfterRemoveEpic(EpicEntity epicEntity) throws DBServiceException {
+        try {
+            ReleaseLayoutEntity releaseLayoutEntity = releaseService.getReleaseLayout(
+                    ReleaseLayoutEntity.builder()
+                            .releaseId(epicEntity.getReleaseId())
+                            .type(ReleaseLayoutType.EPIC)
+                            .build()
+            ).get(0);
+            List<Long> layout = GsonUtils.getGson().fromJson(
+                    releaseLayoutEntity.getLayout(),
+                    new TypeToken<ArrayList<Long>>() {
+                    }.getType()
+            );
+            layout.remove(epicEntity.getId());
+            releaseLayoutEntity.setLayout(GsonUtils.convertToString(layout));
+            releaseService.updateReleaseLayout(releaseLayoutEntity);
+        } catch (ReleaseLayoutNotFoundException e) {
         }
     }
 }
