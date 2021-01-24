@@ -291,6 +291,8 @@ public class RepresentationBuilder {
         featureRep.setType(FeatureType.values()[feature.getType()].name());
         featureRep.setStartOn(feature.getStartOn());
         featureRep.setEndOn(feature.getEndOn());
+        featureRep.setInitiativeId(feature.getInitiativeId());
+        featureRep.setProcess(feature.getProcess());
 
         if(actionRep != null) {
             featureRep.setTodoReps(actionRep.getTodoReps());
@@ -304,9 +306,7 @@ public class RepresentationBuilder {
             featureRep.setRequirements(feature.getRequirements());
             featureRep.setCreatedAt(feature.getCreatedAt());
             featureRep.setCreatedBy(feature.getCreatedBy());
-            featureRep.setProcess(feature.getProcess());
             featureRep.setIsComplete(feature.getIsComplete() == FeatureIsComplete.TRUE);
-            featureRep.setInitiativeId(feature.getInitiativeId());
             List<Long> goals = GsonUtils.toListObject(feature.getGoals(), Long.class);
             featureRep.setGoals(goals);
         }
