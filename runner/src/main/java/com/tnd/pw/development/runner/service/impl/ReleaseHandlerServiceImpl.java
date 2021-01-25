@@ -70,9 +70,28 @@ public class ReleaseHandlerServiceImpl implements ReleaseHandlerService {
             createDefaultPhases(release);
         }
 
+        createLayout(release);
+
         sdkService.createHistory(request.getPayload().getUserId(), release.getId(), ReportAction.CREATED, GsonUtils.convertToString(release));
 
         return getRelease(release.getProductId());
+    }
+
+    private void createLayout(ReleaseEntity release) throws DBServiceException {
+        releaseService.createReleaseLayout(
+                ReleaseLayoutEntity.builder()
+                        .releaseId(release.getId())
+                        .productId(release.getProductId())
+                        .type(ReleaseLayoutType.FEATURE)
+                        .layout(GsonUtils.convertToString(new ArrayList()))
+                        .build());
+        releaseService.createReleaseLayout(
+                ReleaseLayoutEntity.builder()
+                        .releaseId(release.getId())
+                        .productId(release.getProductId())
+                        .type(ReleaseLayoutType.EPIC)
+                        .layout(GsonUtils.convertToString(new ArrayList()))
+                        .build());
     }
 
     @Override
