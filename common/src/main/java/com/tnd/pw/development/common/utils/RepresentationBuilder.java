@@ -447,7 +447,9 @@ public class RepresentationBuilder {
                 utFeatureRep.setId(utFeature.getId());
                 utFeatureRep.setPositionX(utFeature.getPositionX());
                 utFeatureRep.setPositionY(utFeature.getPositionY());
-                FeatureEntity featureEntity = featureEntities.stream().filter(feature -> feature.getId().compareTo(utFeature.getId()) == 0).findFirst().get();
+                FeatureEntity featureEntity = featureEntities.stream()
+                        .filter(feature -> feature.getId().compareTo(utFeature.getId()) == 0)
+                        .findFirst().get();
                 utFeatureRep.setName(featureEntity.getName());
 
                 utFeatureReps.add(utFeatureRep);

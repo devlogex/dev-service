@@ -129,13 +129,12 @@ public class CalculateService {
                         }.getType()
                 );
                 if (!CollectionUtils.isEmpty(utReleases)) {
-                    OUTLOOK:
                     for (int i = 0; i < utReleases.size(); i++) {
                         List<UTFeature> features = utReleases.get(i).getFeatures();
                         for (int j = 0; j < features.size(); j++) {
                             if (features.get(j).getId().compareTo(featureId) == 0) {
                                 features.remove(j);
-                                break OUTLOOK;
+                                j--;
                             }
                         }
                     }
